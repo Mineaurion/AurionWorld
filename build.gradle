@@ -1,0 +1,105 @@
+buildscript {
+    repositories {
+        jcenter()
+        mavenCentral()
+        maven {
+            name = "forge"
+            url = "http://files.minecraftforge.net/maven"
+        }
+        maven {
+            name = "sonatype"
+            url = "https://oss.sonatype.org/content/repositories/snapshots/"
+        }
+        maven {
+            url "https://plugins.gradle.org/m2/"
+        }
+    }
+    dependencies {
+        classpath 'net.minecraftforge.gradle:ForgeGradle:1.2-SNAPSHOT'
+    }
+    dependencies {
+        classpath 'com.github.jengelman.gradle.plugins:shadow:1.2.3'
+    }
+    dependencies {
+        classpath 'gradle.plugin.de.schablinski.gradle.activejdbc:activejdbc-gradle-plugin:1.0'
+    }
+}
+
+task wrapper(type: Wrapper) {
+    gradleVersion = '2.6' //Or desired version
+}
+
+apply plugin: 'forge'
+apply plugin: 'idea'
+apply plugin: 'com.github.johnrengelman.shadow'
+apply plugin: 'java'
+apply plugin: "de.schablinski.activejdbc-gradle-plugin"
+
+version = "1.0"
+group= "com.mineaurion.aurionworld"
+archivesBaseName = "AurionWorld"
+
+sourceCompatibility = targetCompatibility = '1.8' // Need this here so eclipse task generates correctly.
+
+configurations {
+    extraLibs
+    compile.extendsFrom extraLibs
+}
+
+compileJava {
+    sourceCompatibility = targetCompatibility = '1.8'
+}
+
+minecraft {
+    version = "1.7.10-10.13.4.1614-1.7.10"
+    runDir = "run"
+
+    srgExtra "PK: org/slf4j org/slf4j-aurion"
+}
+
+dependencies {
+    compile 'org.jetbrains:annotations:16.0.2'
+    extraLibs 'mysql:mysql-connector-java:8.0.13'
+    extraLibs 'org.javalite:activejdbc:2.3'
+    extraLibs 'org.javalite:javalite-common:2.3'
+    extraLibs 'org.slf4j:slf4j-api:1.7.25'
+    extraLibs 'org.slf4j:slf4j-simple:1.7.25'
+    extraLibs 'com.fasterxml.jackson.core:jackson-databind:2.9.9'
+    extraLibs 'com.fasterxml.jackson.core:jackson-core:2.9.9'
+    extraLibs 'com.fasterxml.jackson.core:jackson-annotations:2.9.0'
+}
+
+
+processResources
+{
+    // this will ensure that this task is redone when the versions change.
+    inputs.property "version", project.version
+    inputs.property "mcversion", project.minecraft.version
+
+    // replace stuff in mcmod.info, nothing else
+    from(sourceSets.main.resources.srcDirs) {
+        include 'mcmod.info'
+                
+        // replace version and mcversion
+        expand 'version':project.version, 'mcversion':project.minecraft.version
+    }
+        
+    // copy everything else, thats not the mcmod.info
+    from(sourceSets.main.resources.srcDirs) {
+        exclude 'mcmod.info'
+    }
+}
+
+jar {
+    from(configurations.extraLibs.collect { it.isDirectory() ? it : zipTree(it) }) {
+        exclude 'META-INF', 'META-INF/**'
+    }
+}
+
+task installJar(type: Copy) {
+    from "./build/libs/"+ archivesBaseName +"-" + version + ".jar"
+    into 'C:/Users/Ashk/Desktop/Mineaurion/Server/Forge1.7.10/mods'
+}
+
+installJar.dependsOn build;
+installJar.mustRunAfter(build);
