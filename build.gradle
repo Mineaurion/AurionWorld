@@ -64,9 +64,9 @@ dependencies {
     extraLibs 'org.javalite:javalite-common:2.3'
     extraLibs 'org.slf4j:slf4j-api:1.7.25'
     extraLibs 'org.slf4j:slf4j-simple:1.7.25'
-    extraLibs 'com.fasterxml.jackson.core:jackson-databind:2.9.9'
-    extraLibs 'com.fasterxml.jackson.core:jackson-core:2.9.9'
-    extraLibs 'com.fasterxml.jackson.core:jackson-annotations:2.9.0'
+    compile 'com.fasterxml.jackson.core:jackson-databind:2.9.9'
+    compile 'com.fasterxml.jackson.core:jackson-core:2.9.9'
+    compile 'com.fasterxml.jackson.core:jackson-annotations:2.9.0'
 }
 
 
@@ -92,7 +92,7 @@ processResources
 
 jar {
     from(configurations.extraLibs.collect { it.isDirectory() ? it : zipTree(it) }) {
-        exclude 'META-INF', 'META-INF/**'
+        exclude 'META-INF/*', 'META-INF/**'
     }
 }
 

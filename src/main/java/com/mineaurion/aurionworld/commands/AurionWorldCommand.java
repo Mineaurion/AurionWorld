@@ -1,21 +1,23 @@
 package com.mineaurion.aurionworld.commands;
 
 import com.mineaurion.api.commands.Command;
+import com.mineaurion.aurionworld.commands.world.WorldCommand;
 import net.minecraft.command.ICommandSender;
 
 public class AurionWorldCommand extends Command {
 
-    public AurionWorldCommand(String name, int requireLevel, String... aliases) {
-        super(name, requireLevel, aliases);
+    public AurionWorldCommand(String id) {
+        super(id);
+        setSubCommand(new ReloadCommand("reload", this));
+        setSubCommand(new HelpCommand("help", this));
+        setSubCommand(new WorldCommand("world", this));
     }
 
     @Override
-    public boolean canCommandSenderUseCommand(ICommandSender iCommandSender) {
-        return false;
+    public void process(ICommandSender commandSender, String[] args) {
+        getSubCommandById("help").execute(commandSender, args);
+
     }
 
-    @Override
-    public boolean isUsernameIndex(String[] strings, int i) {
-        return false;
-    }
+
 }

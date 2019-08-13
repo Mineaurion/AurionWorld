@@ -1,8 +1,16 @@
 package com.mineaurion.api.database;
 
 import com.mineaurion.api.Log;
+import com.mineaurion.aurionworld.AurionWorld;
 import org.apache.logging.log4j.Logger;
 import org.javalite.activejdbc.Base;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.sql.Connection;
+import java.sql.SQLException;
 
 
 public class Mysql {
@@ -47,6 +55,19 @@ public class Mysql {
             _instance = this;
         }
         catch (Exception e) {
+            Log.error(e.getMessage());
+        }
+    }
+
+    public static void runFile(InputStream inputStream) {
+        Connection con = Base.connection();
+        ScriptRunner runner = new ScriptRunner(con, false, false);
+        InputStream in = inputStream;
+        BufferedReader reader = new BufferedReader(new InputStreamReader(in));
+        try {
+            runner.runScript(new BufferedReader(reader));
+            reader.close();
+        } catch (IOException | SQLException e) {
             Log.error(e.getMessage());
         }
     }

@@ -1,19 +1,26 @@
 package com.mineaurion.aurionworld;
 
 import com.mineaurion.api.Log;
+import com.mineaurion.api.commands.Command;
 import com.mineaurion.api.commands.Levels;
 import com.mineaurion.api.database.Mysql;
 import com.mineaurion.api.database.ScriptRunner;
+import com.mineaurion.api.models.World;
 import com.mineaurion.aurionworld.commands.AurionWorldCommand;
 import cpw.mods.fml.common.Mod;
 import cpw.mods.fml.common.event.FMLInitializationEvent;
 import cpw.mods.fml.common.event.FMLPreInitializationEvent;
 import cpw.mods.fml.common.event.FMLServerStartingEvent;
 import cpw.mods.fml.common.event.FMLServerStoppedEvent;
+import cpw.mods.fml.common.registry.GameRegistry;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
+import net.minecraft.command.ICommandSender;
 import net.minecraft.command.ServerCommandManager;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.util.ChatComponentText;
+import net.minecraft.world.WorldProvider;
+import net.minecraft.world.biome.BiomeGenBase;
 import net.minecraftforge.common.config.Configuration;
 import org.javalite.activejdbc.Base;
 
@@ -33,7 +40,7 @@ public class AurionWorld {
     /*********************************************
      * Plugin attributes
      */
-    private Configuration _configuration;
+    private static Configuration _configuration;
 
     @Mod.EventHandler
     public void preInit(FMLPreInitializationEvent event) {
@@ -44,9 +51,11 @@ public class AurionWorld {
     public void init(FMLInitializationEvent event) {
         _configuration = new Configuration(new File("config/AurionWorld.cfg"));
         _configuration.load();
+        // Cmd
+        _configuration.setCategoryComment(Command.prefix, "Commands datas");
 
+        // Database
         _configuration.setCategoryComment("database", "Database credentials");
-
         String host = _configuration.get("database", "host", "localhost").getString();
         String port = _configuration.get("database", "port", "3306").getString();
         String base = _configuration.get("database", "base", "aurionworld").getString();
@@ -73,16 +82,11 @@ public class AurionWorld {
 
         Log.info("Database `" + base + "` has been created!");
 
-        Connection con = Base.connection();
-        ScriptRunner runner = new ScriptRunner(con, false, false);
-        InputStream in = getClass().getClassLoader().getResourceAsStream("assets/aurionworld/aurionworld.sql");
-        BufferedReader reader = new BufferedReader(new InputStreamReader(in));
-        try {
-            runner.runScript(new BufferedReader(reader));
-            reader.close();
-        } catch (IOException | SQLException e) {
-            Log.error(e.getMessage());
-        }
+        // Run AurionWorld.sql
+        Mysql.runFile(
+                getClass().getClassLoader()
+                        .getResourceAsStream("assets/aurionworld/aurionworld.sql")
+        );
     }
 
 
@@ -91,7 +95,13 @@ public class AurionWorld {
         MinecraftServer srv = event.getServer();
 
         ServerCommandManager scm = (ServerCommandManager) srv.getCommandManager();
-        scm.registerCommand(new AurionWorldCommand("test", Levels.PLAYER, "toto", "tata"));
+        scm.registerCommand(new AurionWorldCommand("aw"));
+
+        World w = new World();
+        w.set("owner_uuid", "owner");
+        w.set("path", "pathtest");
+        w.set("loaded", 0);
+        w.save();
     }
 
     @Mod.EventHandler
@@ -99,7 +109,32 @@ public class AurionWorld {
         Mysql.close();
     }
 
-    public Configuration getConfig() {
+    public static Configuration getConfig() {
         return _configuration;
+    }
+
+    public static void reload() {
+        _configuration.load();
+        if (_configuration.hasChanged())
+            _configuration.save();
+    }
+
+    public static void sendMessage(ICommandSender commandSender, String message) {
+        if (commandSender == MinecraftServer.getServer()) {
+            Log.info(message);
+            return;
+        }
+        while (message != null) {
+            int nlIndex = message.indexOf('\n');
+            String sent;
+            if (nlIndex == -1) {
+                sent = message;
+                message = null;
+            } else {
+                sent = message.substring(0, nlIndex);
+                message = message.substring(nlIndex + 1);
+            }
+            commandSender.addChatMessage(new ChatComponentText(sent));
+        }
     }
 }
