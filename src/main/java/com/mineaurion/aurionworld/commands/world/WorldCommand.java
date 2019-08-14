@@ -1,11 +1,9 @@
 package com.mineaurion.aurionworld.commands.world;
 
-import com.mineaurion.api.commands.Command;
-import com.mineaurion.api.commands.SubCommand;
+import com.mineaurion.aurionworld.core.commands.Command;
+import com.mineaurion.aurionworld.core.commands.SubCommand;
 import com.mineaurion.aurionworld.commands.world.subcommands.*;
 import net.minecraft.command.ICommandSender;
-import net.minecraft.world.biome.WorldChunkManager;
-import net.minecraftforge.common.DimensionManager;
 
 public class WorldCommand extends SubCommand {
     public WorldCommand(String id, Command parent) {

@@ -1,4 +1,4 @@
-package com.mineaurion.api.commands;
+package com.mineaurion.aurionworld.core.commands;
 
 public class UsageException extends RuntimeException {
     public UsageException() {

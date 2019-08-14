@@ -1,12 +1,8 @@
-package com.mineaurion.api.commands;
+package com.mineaurion.aurionworld.core.commands;
 
-import com.mineaurion.aurionworld.AurionWorld;
 import net.minecraft.command.ICommandSender;
 
-import java.util.HashMap;
-import java.util.List;
-
-public class SubCommand extends Command {
+public abstract class SubCommand extends Command {
 
     public SubCommand(String id, Command parent) {
         super(id, parent);

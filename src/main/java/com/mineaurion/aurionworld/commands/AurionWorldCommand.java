@@ -1,6 +1,6 @@
 package com.mineaurion.aurionworld.commands;
 
-import com.mineaurion.api.commands.Command;
+import com.mineaurion.aurionworld.core.commands.Command;
 import com.mineaurion.aurionworld.commands.world.WorldCommand;
 import net.minecraft.command.ICommandSender;
 
@@ -16,7 +16,6 @@ public class AurionWorldCommand extends Command {
     @Override
     public void process(ICommandSender commandSender, String[] args) {
         getSubCommandById("help").execute(commandSender, args);
-
     }
 
 

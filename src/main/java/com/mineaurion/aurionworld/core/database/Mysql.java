@@ -1,8 +1,6 @@
-package com.mineaurion.api.database;
+package com.mineaurion.aurionworld.core.database;
 
-import com.mineaurion.api.Log;
-import com.mineaurion.aurionworld.AurionWorld;
-import org.apache.logging.log4j.Logger;
+import com.mineaurion.aurionworld.core.Log;
 import org.javalite.activejdbc.Base;
 
 import java.io.BufferedReader;

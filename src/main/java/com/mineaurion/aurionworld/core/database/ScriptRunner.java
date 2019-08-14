@@ -1,4 +1,4 @@
-package com.mineaurion.api.database;
+package com.mineaurion.aurionworld.core.database;
 
 /*
  * Slightly modified version of the com.ibatis.common.jdbc.ScriptRunner class

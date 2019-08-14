@@ -1,34 +1,27 @@
 package com.mineaurion.aurionworld;
 
-import com.mineaurion.api.Log;
-import com.mineaurion.api.commands.Command;
-import com.mineaurion.api.commands.Levels;
-import com.mineaurion.api.database.Mysql;
-import com.mineaurion.api.database.ScriptRunner;
-import com.mineaurion.api.models.World;
+import com.mineaurion.aurionworld.core.Log;
+import com.mineaurion.aurionworld.core.commands.Command;
+import com.mineaurion.aurionworld.core.commands.CommandManager;
+//import com.mineaurion.aurionworld.core.database.Mysql;
 import com.mineaurion.aurionworld.commands.AurionWorldCommand;
+import com.mineaurion.aurionworld.core.models.World;
+import com.mineaurion.aurionworld.world.AWorldManager;
 import cpw.mods.fml.common.Mod;
-import cpw.mods.fml.common.event.FMLInitializationEvent;
-import cpw.mods.fml.common.event.FMLPreInitializationEvent;
-import cpw.mods.fml.common.event.FMLServerStartingEvent;
-import cpw.mods.fml.common.event.FMLServerStoppedEvent;
-import cpw.mods.fml.common.registry.GameRegistry;
+import cpw.mods.fml.common.event.*;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.command.ServerCommandManager;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.ChatComponentText;
-import net.minecraft.world.WorldProvider;
-import net.minecraft.world.biome.BiomeGenBase;
 import net.minecraftforge.common.config.Configuration;
-import org.javalite.activejdbc.Base;
+//import org.javalite.activejdbc.Base;
 
 import java.io.*;
-import java.sql.Connection;
 import java.sql.SQLException;
 
-@Mod(modid = AurionWorld.MODID, name = AurionWorld.NAME, version = AurionWorld.VERSION)
+@Mod(modid = AurionWorld.MODID, name = AurionWorld.NAME, version = AurionWorld.VERSION, acceptableRemoteVersions = "*")
 @SideOnly(Side.SERVER)
 public class AurionWorld {
     /*********************************************
@@ -41,6 +34,9 @@ public class AurionWorld {
      * Plugin attributes
      */
     private static Configuration _configuration;
+    private static CommandManager _commandManager;
+
+    private static AWorldManager _worldManager;
 
     @Mod.EventHandler
     public void preInit(FMLPreInitializationEvent event) {
@@ -51,6 +47,7 @@ public class AurionWorld {
     public void init(FMLInitializationEvent event) {
         _configuration = new Configuration(new File("config/AurionWorld.cfg"));
         _configuration.load();
+
         // Cmd
         _configuration.setCategoryComment(Command.prefix, "Commands datas");
 
@@ -64,13 +61,12 @@ public class AurionWorld {
 
         if (_configuration.hasChanged())
             _configuration.save();
-
+        /*
         // Set MySQL settings
         Mysql.setCredentials(host, port, base, username, password);
         // Try to open Database with settings given
         Mysql.open();
         // Create schema if not exist
-
         Base.exec("CREATE DATABASE IF NOT EXISTS " + base);
 
         try {
@@ -80,43 +76,35 @@ public class AurionWorld {
             Log.error(e.getMessage());
         }
 
-        Log.info("Database `" + base + "` has been created!");
-
         // Run AurionWorld.sql
         Mysql.runFile(
                 getClass().getClassLoader()
                         .getResourceAsStream("assets/aurionworld/aurionworld.sql")
-        );
+        );*/
     }
 
+    @Mod.EventHandler
+    public void postInit(FMLPostInitializationEvent event) {
+        _worldManager  = new AWorldManager();
+
+        _worldManager.loadWorldProviders();
+        _worldManager.loadWorldTypes();
+    }
 
     @Mod.EventHandler
     public void start(FMLServerStartingEvent event) {
         MinecraftServer srv = event.getServer();
 
-        ServerCommandManager scm = (ServerCommandManager) srv.getCommandManager();
-        scm.registerCommand(new AurionWorldCommand("aw"));
+        _worldManager.load();
 
-        World w = new World();
-        w.set("owner_uuid", "owner");
-        w.set("path", "pathtest");
-        w.set("loaded", 0);
-        w.save();
+        _commandManager = new CommandManager((ServerCommandManager) srv.getCommandManager());
+        _commandManager.registerCommand(new AurionWorldCommand("aw"));
     }
 
     @Mod.EventHandler
     public void stop(FMLServerStoppedEvent event) {
-        Mysql.close();
-    }
-
-    public static Configuration getConfig() {
-        return _configuration;
-    }
-
-    public static void reload() {
-        _configuration.load();
-        if (_configuration.hasChanged())
-            _configuration.save();
+        _worldManager.stop();
+        //Mysql.close();
     }
 
     public static void sendMessage(ICommandSender commandSender, String message) {
@@ -137,4 +125,21 @@ public class AurionWorld {
             commandSender.addChatMessage(new ChatComponentText(sent));
         }
     }
+
+    public static Configuration getConfig() {
+        return _configuration;
+    }
+
+    public AWorldManager getWorldManager() {
+        return _worldManager;
+    }
+
+    public static void reload() {
+        _configuration.load();
+        _commandManager.reload();
+        _configuration.save();
+
+    }
+
+
 }

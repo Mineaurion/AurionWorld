@@ -1,6 +1,6 @@
-package com.mineaurion.api.commands;
+package com.mineaurion.aurionworld.core.commands;
 
-import com.mineaurion.api.Log;
+import com.mineaurion.aurionworld.core.Log;
 import com.mineaurion.aurionworld.AurionWorld;
 import net.minecraft.command.CommandBase;
 import net.minecraft.command.ICommandSender;
@@ -12,8 +12,6 @@ import java.util.*;
 
 public abstract class Command extends CommandBase {
     public static String prefix = "cmd";
-
-    private Configuration _conf;
 
     private String _package;
     private String _id;
@@ -30,7 +28,6 @@ public abstract class Command extends CommandBase {
 
     public Command(String id) {
         super();
-        _conf = AurionWorld.getConfig();
 
         _parent = null;
         _package = prefix;
@@ -43,7 +40,6 @@ public abstract class Command extends CommandBase {
 
     Command(String id, Command parent) {
         super();
-        _conf = AurionWorld.getConfig();
 
         _parent = parent;
         _package = parent.getPackage() + "." + parent.getId();
@@ -56,6 +52,7 @@ public abstract class Command extends CommandBase {
 
     public void reload() {
         init();
+        Log.info("Command " + getFullId() + " reloaded");
         _subCommands.forEach((k, v) -> {
             v.reload();
         });
@@ -102,8 +99,8 @@ public abstract class Command extends CommandBase {
                     throw new UsageException();
             }
         } catch (UsageException ue) {
-            Log.error(ue.getMessage());
-            AurionWorld.sendMessage(sender, getCommandUsage(sender));
+            getCommandUsage(sender);
+            return;
         }
         process(sender, args);
     }
@@ -171,20 +168,21 @@ public abstract class Command extends CommandBase {
 
     private void init() {
         try {
+            Configuration conf = AurionWorld.getConfig();
             String[] defaultAliases = new String[]{_name + "2"};
 
-            _name = _conf.get(getFullId(), "name", _name).getString();
+            _name = conf.get(getFullId(), "name", _name).getString();
+            Log.info("NAME : " +_name);
             _aliases = new ArrayList<String>(
-                    Arrays.asList(_conf.get(getFullId(), "aliases", defaultAliases).getStringList())
+                    Arrays.asList(conf.get(getFullId(), "aliases", defaultAliases).getStringList())
             );
+            _usage = conf.get(getFullId(), "usage", "Usage " + getFullId()).getString();
+            _description = conf.get(getFullId(), "description", "Description " + getFullId()).getString();
+            Log.info("DESCRIPTION : " + _description);
+            _permission = conf.get(getFullId(), "permission", 1).getInt();
 
-            _usage = _conf.get(getFullId(), "usage", "Usage " + getFullId()).getString();
-            _description = _conf.get(getFullId(), "description", "Description " + getFullId()).getString();
-            _permission = _conf.get(getFullId(), "permission", 1).getInt();
-
-            if (_conf.hasChanged())
-                _conf.save();
-
+            if (conf.hasChanged())
+                conf.save();
         } catch (Exception e) {
             Log.error("Can't init command '" + getFullId() + "' " + e.getMessage());
         }
