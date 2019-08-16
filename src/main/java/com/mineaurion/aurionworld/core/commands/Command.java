@@ -24,8 +24,6 @@ public abstract class Command extends CommandBase {
     private String _description;
     private int _permission;
 
-    private boolean _onlyPlayer = false;
-
     public Command(String id) {
         super();
 
@@ -77,7 +75,7 @@ public abstract class Command extends CommandBase {
     @Override
     public void processCommand(ICommandSender sender, String[] args) {
         try {
-            if (!isPlayer(sender) && _onlyPlayer)
+            if (!isPlayer(sender) && onlyPlayer())
                 throw new UsageException("This command is only for EntityPlayer!");
         } catch (UsageException ue) {
             AurionWorld.sendMessage(sender, "This command is only for EntityPlayer!");
@@ -161,9 +159,8 @@ public abstract class Command extends CommandBase {
         return null;
     }
 
-    public Command onlyPlayer(boolean only) {
-        _onlyPlayer = only;
-        return this;
+    public boolean onlyPlayer() {
+        return false;
     }
 
     private void init() {

@@ -1,0 +1,259 @@
+package com.mineaurion.aurionworld.core.misc.teleporter;
+
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.UUID;
+
+import com.mineaurion.aurionworld.AurionWorld;
+import com.mineaurion.aurionworld.core.Log;
+import com.mineaurion.aurionworld.core.misc.point.WarpPoint;
+import net.minecraft.block.Block;
+import net.minecraft.entity.Entity;
+import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.network.play.server.S07PacketRespawn;
+import net.minecraft.network.play.server.S1DPacketEntityEffect;
+import net.minecraft.potion.PotionEffect;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.util.MathHelper;
+import net.minecraft.world.Teleporter;
+import net.minecraft.world.WorldProvider;
+import net.minecraft.world.WorldServer;
+import net.minecraftforge.common.MinecraftForge;
+
+import cpw.mods.fml.common.FMLCommonHandler;
+import cpw.mods.fml.common.eventhandler.SubscribeEvent;
+import cpw.mods.fml.common.gameevent.TickEvent;
+
+public class TeleportHelper
+{
+
+    public static class SimpleTeleporter extends Teleporter
+    {
+
+        public SimpleTeleporter(WorldServer world)
+        {
+            super(world);
+        }
+
+        @Override
+        public boolean placeInExistingPortal(Entity entity, double x, double y, double z, float rotationYaw)
+        {
+            entity.setLocationAndAngles(x, y, z, rotationYaw, entity.rotationPitch);
+            return true;
+        }
+
+        @Override
+        public void removeStalePortalLocations(long totalWorldTime)
+        {
+            /* do nothing */
+        }
+
+        @Override
+        public void placeInPortal(Entity entity, double x, double y, double z, float rotationYaw)
+        {
+            placeInExistingPortal(entity, x, y, z, rotationYaw);
+        }
+
+    }
+
+    public static class TeleportInfo
+    {
+
+        private EntityPlayerMP player;
+
+        private long start;
+
+        private int timeout;
+
+        private WarpPoint point;
+
+        private WarpPoint playerPos;
+
+        public TeleportInfo(EntityPlayerMP player, WarpPoint point, int timeout)
+        {
+            this.point = point;
+            this.timeout = timeout;
+            this.start = System.currentTimeMillis();
+            this.player = player;
+            this.playerPos = new WarpPoint(player);
+        }
+
+        public boolean check()
+        {
+            if (playerPos.distance(new WarpPoint(player)) > 0.2)
+            {
+                AurionWorld.sendMessage(player, "Teleport cancelled.");
+                return true;
+            }
+            if (System.currentTimeMillis() - start < timeout)
+            {
+                return false;
+            }
+            checkedTeleport(player, point);
+            AurionWorld.sendMessage(player, "Teleported.");
+            return true;
+        }
+
+    }
+
+    public static final String TELEPORT_COOLDOWN = "fe.teleport.cooldown";
+    public static final String TELEPORT_WARMUP = "fe.teleport.warmup";
+    public static final String TELEPORT_CROSSDIM_FROM = "fe.teleport.crossdim.from";
+    public static final String TELEPORT_CROSSDIM_TO = "fe.teleport.crossdim.to";
+    public static final String TELEPORT_CROSSDIM_PORTALFROM = "fe.teleport.crossdim.portalfrom";
+    public static final String TELEPORT_CROSSDIM_PORTALTO = "fe.teleport.crossdim.portalto";
+    public static final String TELEPORT_FROM = "fe.teleport.from";
+    public static final String TELEPORT_TO = "fe.teleport.to";
+    public static final String TELEPORT_PORTALFROM = "fe.teleport.portalfrom";
+    public static final String TELEPORT_PORTALTO = "fe.teleport.portalto";
+
+    private static Map<UUID, TeleportInfo> tpInfos = new HashMap<>();
+
+    public static void teleport(EntityPlayerMP player, WarpPoint point)
+    {
+        if (point.getWorld() == null)
+        {
+            MinecraftServer.getServer().worldServerForDimension(point.getDimension());
+            if (point.getWorld() == null)
+            {
+                AurionWorld.sendMessage(player, "Unable to teleport! Target dimension does not exist");
+                return;
+            }
+        }
+
+        // Get and check teleport
+        checkedTeleport(player, point);
+
+        if (!canTeleportTo(point))
+        {
+            AurionWorld.sendMessage(player, "Unable to teleport! Target location obstructed.");
+            return;
+        }
+    }
+
+    public static boolean canTeleportTo(WarpPoint point)
+    {
+        if (point.getY() < 0)
+            return false;
+        Block block1 = point.getWorld().getBlock(point.getBlockX(), point.getBlockY(), point.getBlockZ());
+        Block block2 = point.getWorld().getBlock(point.getBlockX(), point.getBlockY() + 1, point.getBlockZ());
+        boolean block1Free = !block1.getMaterial().isSolid() || block1.getBlockBoundsMaxX() < 1 || block1.getBlockBoundsMaxY() > 0;
+        boolean block2Free = !block2.getMaterial().isSolid() || block2.getBlockBoundsMaxX() < 1 || block2.getBlockBoundsMaxY() > 0;
+        return block1Free && block2Free;
+    }
+
+    public static void checkedTeleport(EntityPlayerMP player, WarpPoint point)
+    {
+        if (!canTeleportTo(point))
+        {
+            AurionWorld.sendMessage(player, "Unable to teleport! Target location obstructed.");
+            return;
+        }
+
+        WarpPoint old = new WarpPoint(player);
+
+
+        doTeleport(player, point);
+    }
+
+    public static void doTeleport(EntityPlayerMP player, WarpPoint point)
+    {
+        if (point.getWorld() == null)
+        {
+            Log.error("Error teleporting player. Target worlds is NULL");
+            return;
+        }
+        // TODO: Handle teleportation of mounted entity
+        player.mountEntity(null);
+
+        if (player.dimension != point.getDimension())
+        {
+            SimpleTeleporter teleporter = new SimpleTeleporter(point.getWorld());
+            transferPlayerToDimension(player, point.getDimension(), teleporter);
+        }
+        player.playerNetServerHandler.setPlayerLocation(point.getX(), point.getY(), point.getZ(), point.getYaw(), point.getPitch());
+    }
+
+    public static void doTeleportEntity(Entity entity, WarpPoint point)
+    {
+        if (entity instanceof EntityPlayerMP)
+        {
+            doTeleport((EntityPlayerMP) entity, point);
+            return;
+        }
+        if (entity.dimension != point.getDimension())
+            entity.travelToDimension(point.getDimension());
+        entity.setLocationAndAngles(point.getX(), point.getY(), point.getZ(), point.getYaw(), point.getPitch());
+    }
+
+    @SubscribeEvent
+    public void serverTickEvent(TickEvent.ServerTickEvent e)
+    {
+        if (e.phase == TickEvent.Phase.START)
+        {
+            for (Iterator<TeleportInfo> it = tpInfos.values().iterator(); it.hasNext();)
+            {
+                TeleportInfo tpInfo = it.next();
+                if (tpInfo.check())
+                {
+                    it.remove();
+                }
+            }
+        }
+    }
+
+    public static void transferPlayerToDimension(EntityPlayerMP player, int dimension, Teleporter teleporter)
+    {
+        int oldDim = player.dimension;
+        MinecraftServer mcServer = MinecraftServer.getServer();
+
+        WorldServer oldWorld = mcServer.worldServerForDimension(player.dimension);
+        player.dimension = dimension;
+        WorldServer newWorld = mcServer.worldServerForDimension(player.dimension);
+        player.playerNetServerHandler.sendPacket(new S07PacketRespawn(player.dimension, newWorld.difficultySetting,
+                newWorld.getWorldInfo().getTerrainType(), player.theItemInWorldManager.getGameType())); // Forge: Use new dimensions information
+        oldWorld.removePlayerEntityDangerously(player);
+        player.isDead = false;
+
+        transferEntityToWorld(player, oldDim, oldWorld, newWorld, teleporter);
+
+        mcServer.getConfigurationManager().func_72375_a(player, oldWorld);
+        player.playerNetServerHandler.setPlayerLocation(player.posX, player.posY, player.posZ, player.rotationYaw,
+                player.rotationPitch);
+        player.theItemInWorldManager.setWorld(newWorld);
+        mcServer.getConfigurationManager().updateTimeAndWeatherForPlayer(player, newWorld);
+        mcServer.getConfigurationManager().syncPlayerInventory(player);
+        Iterator<?> iterator = player.getActivePotionEffects().iterator();
+        while (iterator.hasNext())
+        {
+            PotionEffect potioneffect = (PotionEffect) iterator.next();
+            player.playerNetServerHandler.sendPacket(new S1DPacketEntityEffect(player.getEntityId(), potioneffect));
+        }
+        FMLCommonHandler.instance().firePlayerChangedDimensionEvent(player, oldDim, dimension);
+    }
+
+    public static void transferEntityToWorld(Entity entity, int oldDim, WorldServer oldWorld, WorldServer newWorld, Teleporter teleporter)
+    {
+        WorldProvider pOld = oldWorld.provider;
+        WorldProvider pNew = newWorld.provider;
+        double moveFactor = pOld.getMovementFactor() / pNew.getMovementFactor();
+        double d0 = entity.posX * moveFactor;
+        double d1 = entity.posZ * moveFactor;
+        double d3 = entity.posX;
+        double d4 = entity.posY;
+        double d5 = entity.posZ;
+        float f = entity.rotationYaw;
+        d0 = MathHelper.clamp_int((int) d0, -29999872, 29999872);
+        d1 = MathHelper.clamp_int((int) d1, -29999872, 29999872);
+        if (entity.isEntityAlive())
+        {
+            entity.setLocationAndAngles(d0, entity.posY, d1, entity.rotationYaw, entity.rotationPitch);
+            teleporter.placeInPortal(entity, d3, d4, d5, f);
+            newWorld.spawnEntityInWorld(entity);
+            newWorld.updateEntityWithOptionalForce(entity, false);
+        }
+        entity.setWorld(newWorld);
+    }
+
+}

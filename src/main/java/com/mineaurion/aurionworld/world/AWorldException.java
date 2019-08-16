@@ -6,9 +6,9 @@ public class AWorldException extends Exception
 
     public static enum Type
     {
-        ALREADY_EXISTS("A world with that name already exists"),
+        ALREADY_EXISTS("A worlds with that name already exists"),
         NO_PROVIDER("There is no provider by that name"),
-        NO_WORLDTYPE("There is no world type by that name");
+        NO_WORLDTYPE("There is no worlds type by that name");
 
         public String error;
 

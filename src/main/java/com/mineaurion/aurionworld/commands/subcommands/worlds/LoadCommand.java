@@ -1,17 +1,16 @@
-package com.mineaurion.aurionworld.commands.world.subcommands;
+package com.mineaurion.aurionworld.commands.subcommands.worlds;
 
 import com.mineaurion.aurionworld.core.commands.Command;
 import com.mineaurion.aurionworld.core.commands.SubCommand;
-import com.mineaurion.aurionworld.AurionWorld;
 import net.minecraft.command.ICommandSender;
 
-public class WorldHelpCommand extends SubCommand {
-    public WorldHelpCommand(String id, Command parent) {
+public class LoadCommand extends SubCommand {
+    public LoadCommand(String id, Command parent) {
         super(id, parent);
     }
 
     @Override
     public void process(ICommandSender sender, String[] args) {
-        AurionWorld.sendMessage(sender, "Help Message!");
+
     }
 }

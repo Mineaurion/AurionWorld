@@ -30,7 +30,7 @@ public class AWorldSaveHandler implements ISaveHandler {
     }
 
     public File getDimensionDirectory() {
-        return new File(getWorldDirectory(), "FEMultiworld/" + world.getName());
+        return new File(getWorldDirectory(), world.getName());
     }
 
     @Override
@@ -80,7 +80,7 @@ public class AWorldSaveHandler implements ISaveHandler {
         NBTTagCompound dataTag = new NBTTagCompound();
         dataTag.setTag("Data", data);
 
-        // Save the list of mods the world was created with
+        // Save the list of mods the worlds was created with
         FMLCommonHandler.instance().handleWorldDataSave(parent, p_75755_1_, dataTag);
 
         try {

@@ -44,7 +44,7 @@ public class Log {
 
     public static String name(World world) {
         if (world.provider == null) {
-            return "Broken world with null world.provider";
+            return "Broken worlds with null worlds.provider";
         }
         return world.provider.getDimensionName() + '/' + world.provider.dimensionId;
     }

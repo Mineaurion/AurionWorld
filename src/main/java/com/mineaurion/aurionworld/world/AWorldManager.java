@@ -14,6 +14,7 @@ import net.minecraftforge.common.network.ForgeMessage;
 import net.minecraftforge.event.world.WorldEvent;
 
 import java.lang.reflect.Field;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Map;
@@ -36,20 +37,15 @@ public class AWorldManager {
     // World states
     public void load() {
         DimensionManager.loadDimensionDataMap(null);
-        Map<String, AWorld> loadedWorlds = new HashMap<>();
         // TODO: loadedWorlds from Model World
-        for (AWorld world : loadedWorlds.values())
-        {
+        Map<String, AWorld> loadedWorlds = new HashMap<>();
+        for (AWorld world : loadedWorlds.values()) {
             worlds.put(world.getName(), world);
-            try
-            {
+            try {
                 registerWorld(world);
                 loadWorld(world);
-            }
-            catch (AWorldException e)
-            {
-                switch (e.type)
-                {
+            } catch (AWorldException e) {
+                switch (e.type) {
                     case NO_PROVIDER:
                         Log.error(String.format(e.type.error, world.provider));
                         break;
@@ -66,11 +62,31 @@ public class AWorldManager {
     }
 
     public void stop() {
+        saveAll();
+        for (AWorld world : worlds.values()) {
+            world.worldLoaded = false;
+            DimensionManager.unregisterDimension(world.getDimensionId());
+        }
+        worldsByDim.clear();
+        worlds.clear();
+    }
 
+    public void saveAll() {
+        for (AWorld world : getWorlds()) {
+            world.save();
+        }
     }
 
     // ============================================================
     // World management
+
+    public Collection<AWorld> getWorlds() {
+        return worlds.values();
+    }
+
+    public AWorld getWorld(String name) {
+        return worlds.get(name);
+    }
 
     public void addWorld(AWorld world) throws AWorldException {
         if (worlds.containsKey(world.getName()))
@@ -90,16 +106,19 @@ public class AWorldManager {
             world.dimensionId = DimensionManager.getNextFreeDimId();
 
         // Register the dimension
+
         DimensionManager.registerDimension(world.dimensionId, world.providerId);
+
         worldsByDim.put(world.dimensionId, world);
     }
 
     protected void loadWorld(AWorld world) {
+        Log.info("START loadWorld");
         if (world.worldLoaded)
             return;
-        try
-        {
-            // Initialize world settings
+        try {
+            Log.info("TRY loadWorld");
+            // Initialize worlds settings
             MinecraftServer mcServer = MinecraftServer.getServer();
             WorldServer overworld = DimensionManager.getWorld(0);
             if (overworld == null)
@@ -123,12 +142,22 @@ public class AWorldManager {
 
             // Post WorldEvent.Load
             MinecraftForge.EVENT_BUS.post(new WorldEvent.Load(worldServer));
-        }
-        catch (Exception e)
-        {
+
+            // Tell everyone about the new dim
+            FMLEmbeddedChannel channel = NetworkRegistry.INSTANCE.getChannel("FORGE", Side.SERVER);
+            ForgeMessage.DimensionRegisterMessage msg = new ForgeMessage.DimensionRegisterMessage(world.dimensionId, world.providerId);
+            channel.attr(FMLOutboundHandler.FML_MESSAGETARGET).set(FMLOutboundHandler.OutboundTarget.ALL);
+            channel.writeOutbound(msg);
+
+            Log.info("TRY loadWorld 1");
+            // Post WorldEvent.Load
+            MinecraftForge.EVENT_BUS.post(new WorldEvent.Load(worldServer));
+            Log.info("TRY loadWorld 2");
+        } catch (Exception e) {
             world.error = true;
             throw e;
         }
+        Log.info("TRY loadWorld END");
     }
 
     // ============================================================
@@ -137,16 +166,13 @@ public class AWorldManager {
     /**
      * Use reflection to load the registered WorldProviders
      */
-    public void loadWorldProviders()
-    {
-        try
-        {
+    public void loadWorldProviders() {
+        try {
             Field f_providers = DimensionManager.class.getDeclaredField("providers");
             f_providers.setAccessible(true);
             @SuppressWarnings("unchecked")
             Hashtable<Integer, Class<? extends WorldProvider>> loadedProviders = (Hashtable<Integer, Class<? extends WorldProvider>>) f_providers.get(null);
-            for (Map.Entry<Integer, Class<? extends WorldProvider>> provider : loadedProviders.entrySet())
-            {
+            for (Map.Entry<Integer, Class<? extends WorldProvider>> provider : loadedProviders.entrySet()) {
                 // skip the default providers as these are aliased as 'normal',
                 // 'nether' and 'end'
                 if (provider.getKey() >= -1 && provider.getKey() <= 1)
@@ -157,22 +183,17 @@ public class AWorldManager {
             worldProviderClasses.put(PROVIDER_NORMAL, 0);
             worldProviderClasses.put(PROVIDER_HELL, 1);
             worldProviderClasses.put(PROVIDER_END, -1);
-        }
-        catch (NoSuchFieldException | SecurityException | IllegalArgumentException | IllegalAccessException e)
-        {
+        } catch (NoSuchFieldException | SecurityException | IllegalArgumentException | IllegalAccessException e) {
             e.printStackTrace();
         }
-        Log.info("Available world providers:");
-        for (Map.Entry<String, Integer> provider : worldProviderClasses.entrySet())
-        {
+        Log.info("Available worlds providers:");
+        for (Map.Entry<String, Integer> provider : worldProviderClasses.entrySet()) {
             Log.info("# " + provider.getValue() + ":" + provider.getKey());
         }
     }
 
-    public int getWorldProviderId(String providerName) throws AWorldException
-    {
-        switch (providerName.toLowerCase())
-        {
+    public int getWorldProviderId(String providerName) throws AWorldException {
+        switch (providerName.toLowerCase()) {
             // We use the hardcoded values as some mods just replace the class
             // (BiomesOPlenty)
             case PROVIDER_NORMAL:
@@ -189,8 +210,7 @@ public class AWorldManager {
         }
     }
 
-    public Map<String, Integer> getWorldProviders()
-    {
+    public Map<String, Integer> getWorldProviders() {
         return worldProviderClasses;
     }
 
@@ -200,8 +220,7 @@ public class AWorldManager {
     /**
      * Returns the WorldType for a given worldType string
      */
-    public WorldType getWorldTypeByName(String worldType) throws AWorldException
-    {
+    public WorldType getWorldTypeByName(String worldType) throws AWorldException {
         WorldType type = worldTypes.get(worldType.toUpperCase());
         if (type == null)
             throw new AWorldException(AWorldException.Type.NO_WORLDTYPE);
@@ -211,10 +230,8 @@ public class AWorldManager {
     /**
      * Builds the map of valid worldTypes
      */
-    public void loadWorldTypes()
-    {
-        for (int i = 0; i < WorldType.worldTypes.length; ++i)
-        {
+    public void loadWorldTypes() {
+        for (int i = 0; i < WorldType.worldTypes.length; ++i) {
             WorldType type = WorldType.worldTypes[i];
             if (type == null)
                 continue;
@@ -227,13 +244,12 @@ public class AWorldManager {
             worldTypes.put(name, type);
         }
 
-        Log.info("Available world types:");
+        Log.info("Available worlds types:");
         for (String worldType : worldTypes.keySet())
             Log.info("# " + worldType);
     }
 
-    public Map<String, WorldType> getWorldTypes()
-    {
+    public Map<String, WorldType> getWorldTypes() {
         return worldTypes;
     }
 }

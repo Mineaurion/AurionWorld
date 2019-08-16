@@ -130,7 +130,7 @@ public class AurionWorld {
         return _configuration;
     }
 
-    public AWorldManager getWorldManager() {
+    public static AWorldManager getWorldManager() {
         return _worldManager;
     }
 

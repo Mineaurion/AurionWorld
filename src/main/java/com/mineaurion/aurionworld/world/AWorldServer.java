@@ -1,10 +1,10 @@
 package com.mineaurion.aurionworld.world;
 
-import com.mineaurion.aurionworld.core.misc.SimpleTeleporter;
+import com.mineaurion.aurionworld.core.misc.teleporter.TeleportHelper;
+import com.mineaurion.aurionworld.core.misc.teleporter.TeleportHelper.SimpleTeleporter;
 import net.minecraft.profiler.Profiler;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.MinecraftException;
-import net.minecraft.world.Teleporter;
 import net.minecraft.world.WorldServer;
 import net.minecraft.world.WorldSettings;
 import net.minecraft.world.storage.ISaveHandler;
@@ -24,7 +24,7 @@ public class AWorldServer extends WorldServer
     }
 
     @Override
-    public Teleporter getDefaultTeleporter()
+    public net.minecraft.world.Teleporter getDefaultTeleporter()
     {
         return this.worldTeleporter;
     }
