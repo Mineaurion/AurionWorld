@@ -114,7 +114,7 @@ public class AWorld {
 
     public void delete() {
         this.model.delete();
-        Log.info("World " + name + "has been deleted!");
+        Log.info("World " + name + " has been deleted!");
     }
 
     public void updateWorldSettings() {

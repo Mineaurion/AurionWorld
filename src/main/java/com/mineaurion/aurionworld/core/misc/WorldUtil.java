@@ -102,7 +102,7 @@ public abstract class WorldUtil {
 
         if (!(AurionWorld.isOp(sender) || (world.isOwner(playerName))))
             return false;
-        return false;
+        return true;
     }
 }
 

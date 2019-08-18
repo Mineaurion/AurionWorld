@@ -31,7 +31,12 @@ public class LoadCommand extends SubCommand {
             AurionWorld.sendMessage(sender, "This world is already loaded!");
             return;
         }
-        AurionWorld.getWorldManager().loadWorld(world);
-        AurionWorld.sendMessage(sender, "World " + world.getName() + " start loading");
+
+        AurionWorld.getWorldManager().loadWorld(world, false);
+
+        if (world.isLoaded())
+            AurionWorld.sendMessage(sender, "World " + world.getName() + " start loading");
+        else
+            AurionWorld.sendMessage(sender, "World " + world.getName() + " can't be loaded");
     }
 }

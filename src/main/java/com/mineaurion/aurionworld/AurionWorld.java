@@ -8,8 +8,11 @@ import com.mineaurion.aurionworld.commands.AurionWorldCommand;
 import com.mineaurion.aurionworld.core.database.Mysql;
 import com.mineaurion.aurionworld.world.AWorldManager;
 import com.mojang.authlib.GameProfile;
+import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.Mod;
 import cpw.mods.fml.common.event.*;
+import cpw.mods.fml.common.eventhandler.SubscribeEvent;
+import cpw.mods.fml.common.gameevent.TickEvent;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import net.minecraft.command.ICommandSender;
@@ -91,12 +94,14 @@ public class AurionWorld {
                 getClass().getClassLoader()
                         .getResourceAsStream("assets/aurionworld/aurionworld.sql")
         );
+
+
     }
 
     @Mod.EventHandler
     public void postInit(FMLPostInitializationEvent event) {
         _worldManager  = new AWorldManager();
-
+        FMLCommonHandler.instance().bus().register(_worldManager);
     }
 
     @Mod.EventHandler
