@@ -68,14 +68,13 @@ public abstract class Command extends CommandBase {
 
     @Override
     public String getCommandUsage(ICommandSender sender) {
-        AurionWorld.sendMessage(sender, _usage);
         return _usage;
     }
 
     @Override
     public void processCommand(ICommandSender sender, String[] args) {
         try {
-            if (!isPlayer(sender) && onlyPlayer())
+            if (!AurionWorld.isPlayer(sender) && onlyPlayer())
                 throw new UsageException("This command is only for EntityPlayer!");
         } catch (UsageException ue) {
             AurionWorld.sendMessage(sender, "This command is only for EntityPlayer!");
@@ -97,7 +96,7 @@ public abstract class Command extends CommandBase {
                     throw new UsageException();
             }
         } catch (UsageException ue) {
-            getCommandUsage(sender);
+            AurionWorld.sendMessage(sender, getCommandUsage(sender));
             return;
         }
         process(sender, args);
@@ -169,13 +168,11 @@ public abstract class Command extends CommandBase {
             String[] defaultAliases = new String[]{_name + "2"};
 
             _name = conf.get(getFullId(), "name", _name).getString();
-            Log.info("NAME : " +_name);
             _aliases = new ArrayList<String>(
                     Arrays.asList(conf.get(getFullId(), "aliases", defaultAliases).getStringList())
             );
             _usage = conf.get(getFullId(), "usage", "Usage " + getFullId()).getString();
             _description = conf.get(getFullId(), "description", "Description " + getFullId()).getString();
-            Log.info("DESCRIPTION : " + _description);
             _permission = conf.get(getFullId(), "permission", 1).getInt();
 
             if (conf.hasChanged())
@@ -183,13 +180,5 @@ public abstract class Command extends CommandBase {
         } catch (Exception e) {
             Log.error("Can't init command '" + getFullId() + "' " + e.getMessage());
         }
-    }
-
-    private boolean isServer(ICommandSender sender) {
-        return sender == MinecraftServer.getServer();
-    }
-
-    private boolean isPlayer(ICommandSender sender) {
-        return (sender instanceof EntityPlayer);
     }
 }

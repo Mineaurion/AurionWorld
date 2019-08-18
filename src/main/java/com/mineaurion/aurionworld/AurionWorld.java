@@ -5,21 +5,31 @@ import com.mineaurion.aurionworld.core.commands.Command;
 import com.mineaurion.aurionworld.core.commands.CommandManager;
 //import com.mineaurion.aurionworld.core.database.Mysql;
 import com.mineaurion.aurionworld.commands.AurionWorldCommand;
-import com.mineaurion.aurionworld.core.models.World;
+import com.mineaurion.aurionworld.core.database.Mysql;
 import com.mineaurion.aurionworld.world.AWorldManager;
+import com.mojang.authlib.GameProfile;
 import cpw.mods.fml.common.Mod;
 import cpw.mods.fml.common.event.*;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.command.ServerCommandManager;
+import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.management.PlayerProfileCache;
+import net.minecraft.server.management.UserListOps;
+import net.minecraft.server.management.UserListOpsEntry;
 import net.minecraft.util.ChatComponentText;
 import net.minecraftforge.common.config.Configuration;
+import org.javalite.activejdbc.Base;
 //import org.javalite.activejdbc.Base;
 
 import java.io.*;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
 
 @Mod(modid = AurionWorld.MODID, name = AurionWorld.NAME, version = AurionWorld.VERSION, acceptableRemoteVersions = "*")
 @SideOnly(Side.SERVER)
@@ -61,7 +71,7 @@ public class AurionWorld {
 
         if (_configuration.hasChanged())
             _configuration.save();
-        /*
+
         // Set MySQL settings
         Mysql.setCredentials(host, port, base, username, password);
         // Try to open Database with settings given
@@ -80,21 +90,21 @@ public class AurionWorld {
         Mysql.runFile(
                 getClass().getClassLoader()
                         .getResourceAsStream("assets/aurionworld/aurionworld.sql")
-        );*/
+        );
     }
 
     @Mod.EventHandler
     public void postInit(FMLPostInitializationEvent event) {
         _worldManager  = new AWorldManager();
 
-        _worldManager.loadWorldProviders();
-        _worldManager.loadWorldTypes();
     }
 
     @Mod.EventHandler
     public void start(FMLServerStartingEvent event) {
         MinecraftServer srv = event.getServer();
 
+        _worldManager.loadWorldProviders();
+        _worldManager.loadWorldTypes();
         _worldManager.load();
 
         _commandManager = new CommandManager((ServerCommandManager) srv.getCommandManager());
@@ -126,12 +136,22 @@ public class AurionWorld {
         }
     }
 
+    public static void sendMessage(ICommandSender sender, ChatComponentText message) {
+        sender.addChatMessage(message);
+    }
+
     public static Configuration getConfig() {
         return _configuration;
     }
 
     public static AWorldManager getWorldManager() {
         return _worldManager;
+    }
+
+    public static List<EntityPlayerMP> getPlayerList()
+    {
+        MinecraftServer mc = MinecraftServer.getServer();
+        return mc == null || mc.getConfigurationManager() == null ? new ArrayList<>() : mc.getConfigurationManager().playerEntityList;
     }
 
     public static void reload() {
@@ -141,5 +161,28 @@ public class AurionWorld {
 
     }
 
+    public static boolean isServer(ICommandSender sender) {
+        return sender == MinecraftServer.getServer();
+    }
 
+    public static boolean isPlayer(ICommandSender sender) {
+        return (sender instanceof EntityPlayer);
+    }
+
+    public static boolean isOp(ICommandSender sender) {
+        if (AurionWorld.isServer(sender))
+            return true;
+
+        String playerName = sender.getCommandSenderName();
+        UserListOps opsList = MinecraftServer.getServer().getConfigurationManager().func_152603_m();
+        return opsList.func_152700_a(playerName) != null;
+    }
+
+    public static EntityPlayerMP getEntityPlayer(String name) {
+        return MinecraftServer.getServer().getConfigurationManager().func_152612_a(name);
+    }
+
+    public static GameProfile getEntityPlayer(UUID uuid) {
+        return MinecraftServer.getServer().func_152358_ax().func_152652_a(uuid);
+    }
 }

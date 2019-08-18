@@ -1,12 +1,15 @@
 package com.mineaurion.aurionworld.core.misc;
 
+import com.mineaurion.aurionworld.AurionWorld;
 import com.mineaurion.aurionworld.core.misc.point.WorldPoint;
+import com.mineaurion.aurionworld.world.AWorld;
 import net.minecraft.block.Block;
+import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.world.World;
 
-public abstract class WorldUtil
-{
+public abstract class WorldUtil {
 
     /**
      * Checks if the blocks from [x,y,z] to [x,y+h-1,z] are either air or replacable
@@ -18,10 +21,8 @@ public abstract class WorldUtil
      * @param h
      * @return y value
      */
-    public static boolean isFree(World world, int x, int y, int z, int h)
-    {
-        for (int i = 0; i < h; i++)
-        {
+    public static boolean isFree(World world, int x, int y, int z, int h) {
+        for (int i = 0; i < h; i++) {
             Block block = world.getBlock(x, y + i, z);
             if (block.getMaterial().isSolid() || block.getMaterial().isLiquid())
                 return false;
@@ -41,15 +42,11 @@ public abstract class WorldUtil
      * @param h
      * @return y value
      */
-    public static int placeInWorld(World world, int x, int y, int z, int h)
-    {
-        if (y >= 0 && isFree(world, x, y, z, h))
-        {
+    public static int placeInWorld(World world, int x, int y, int z, int h) {
+        if (y >= 0 && isFree(world, x, y, z, h)) {
             while (isFree(world, x, y - 1, z, h) && y > 0)
                 y--;
-        }
-        else
-        {
+        } else {
             if (y < 0)
                 y = 0;
             y++;
@@ -72,23 +69,40 @@ public abstract class WorldUtil
      * @param z
      * @return y value
      */
-    public static int placeInWorld(World world, int x, int y, int z)
-    {
+    public static int placeInWorld(World world, int x, int y, int z) {
         return placeInWorld(world, x, y, z, 2);
     }
 
-    public static WorldPoint placeInWorld(WorldPoint p)
-    {
+    public static WorldPoint placeInWorld(WorldPoint p) {
         return p.setY(placeInWorld(p.getWorld(), p.getX(), p.getY(), p.getZ(), 2));
     }
 
-    public static void placeInWorld(EntityPlayer player)
-    {
+    public static void placeInWorld(EntityPlayer player) {
         WorldPoint p = placeInWorld(new WorldPoint(player));
         player.setPositionAndUpdate(p.getX() + 0.5, p.getY(), p.getZ() + 0.5);
     }
 
     /* ------------------------------------------------------------ */
 
+    public static boolean canDoOwnerAction(ICommandSender sender, AWorld world) {
+        if (AurionWorld.isServer(sender))
+            return true;
+        String playerName = sender.getCommandSenderName();
+        return(AurionWorld.isOp(sender) || world.isOwner(playerName));
+    }
+
+    public static boolean canDoOwnerAction(ICommandSender sender) {
+        String playerName = sender.getCommandSenderName();
+        EntityPlayerMP player = AurionWorld.getEntityPlayer(playerName);
+
+        int dimId = player.dimension;
+        AWorld world = AurionWorld.getWorldManager().getWorld(dimId);
+        if (world == null)
+            return false;
+
+        if (!(AurionWorld.isOp(sender) || (world.isOwner(playerName))))
+            return false;
+        return false;
+    }
 }
 

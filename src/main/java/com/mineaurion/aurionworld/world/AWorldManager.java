@@ -1,10 +1,14 @@
 package com.mineaurion.aurionworld.world;
 
+import com.mineaurion.aurionworld.AurionWorld;
 import com.mineaurion.aurionworld.core.Log;
+import com.mineaurion.aurionworld.core.misc.point.WorldPoint;
+import com.mineaurion.aurionworld.core.models.WorldModel;
 import cpw.mods.fml.common.network.FMLEmbeddedChannel;
 import cpw.mods.fml.common.network.FMLOutboundHandler;
 import cpw.mods.fml.common.network.NetworkRegistry;
 import cpw.mods.fml.relauncher.Side;
+import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.*;
 import net.minecraft.world.storage.ISaveHandler;
@@ -12,12 +16,12 @@ import net.minecraftforge.common.DimensionManager;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.network.ForgeMessage;
 import net.minecraftforge.event.world.WorldEvent;
+import org.apache.commons.io.FileUtils;
 
+import java.io.File;
+import java.io.IOException;
 import java.lang.reflect.Field;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Hashtable;
-import java.util.Map;
+import java.util.*;
 
 public class AWorldManager {
     public static final String PROVIDER_NORMAL = "normal";
@@ -25,7 +29,7 @@ public class AWorldManager {
     public static final String PROVIDER_END = "end";
 
     protected Map<String, AWorld> worlds = new HashMap<>();
-    protected Map<Integer, AWorld> worldsByDim = new HashMap<>();
+
     protected Map<String, Integer> worldProviderClasses = new HashMap<>();
     protected Map<String, WorldType> worldTypes = new HashMap<>();
 
@@ -33,111 +37,195 @@ public class AWorldManager {
 
     }
 
-    // ============================================================
-    // World states
-    public void load() {
-        DimensionManager.loadDimensionDataMap(null);
-        // TODO: loadedWorlds from Model World
-        Map<String, AWorld> loadedWorlds = new HashMap<>();
-        for (AWorld world : loadedWorlds.values()) {
-            worlds.put(world.getName(), world);
-            try {
-                registerWorld(world);
-                loadWorld(world);
-            } catch (AWorldException e) {
-                switch (e.type) {
-                    case NO_PROVIDER:
-                        Log.error(String.format(e.type.error, world.provider));
-                        break;
-                    case NO_WORLDTYPE:
-                        Log.error(String.format(e.type.error, world.worldType));
-                        break;
-                    default:
-                        Log.error(e.type.error);
-                        break;
-                }
+    /*private void checkMissingWorlds() {
+        Integer[] dimensionIDs = DimensionManager.getStaticDimensionIDs();
 
+        for (Integer dimId : dimensionIDs) {
+            if (getWorld(dimId) == null && ) {
+                String name = DimensionManager.getProvider(dimId).getDimensionName().toLowerCase();
+                String provider = DimensionManager.getWorld(dimId).getProviderName().toLowerCase();
+                String type = "";
+
+                AWorld world = new AWorld(name, provider, type);
+                world.save();
             }
         }
+    }*/
+
+    // ============================================================
+    // WorldModel states
+
+    private HashMap<String, AWorld> loadAllWorldFromDb() {
+        List<WorldModel> worldModels = WorldModel.findAll();
+        HashMap<String, AWorld> results = new HashMap<>();
+        for (WorldModel wm : worldModels) {
+            results.put((String) wm.get("name"), new AWorld(wm));
+        }
+        return results;
+    }
+
+    public void load() {
+        DimensionManager.loadDimensionDataMap(null);
+        // TODO: loadedWorlds from Model WorldModel
+        Map<String, AWorld> worldsToLoad = loadAllWorldFromDb();
+        for (AWorld world : worldsToLoad.values()) {
+            worlds.put(world.getName(), world);
+            loadWorld(world);
+        }
+    }
+
+    public void unloadWorld(AWorld world) {
+        world.worldLoaded = false;
+        world.worldLoadIt = false;
+        world.removeAllPlayersFromWorld();
+        DimensionManager.unloadWorld(world.getDimensionId());
+        Log.info("World " + world.getName() + " is now unloaded! All players has been teleported at overworld's spawn");
+        world.save();
     }
 
     public void stop() {
-        saveAll();
         for (AWorld world : worlds.values()) {
             world.worldLoaded = false;
+            world.save();
             DimensionManager.unregisterDimension(world.getDimensionId());
         }
-        worldsByDim.clear();
         worlds.clear();
     }
 
-    public void saveAll() {
-        for (AWorld world : getWorlds()) {
-            world.save();
-        }
-    }
-
     // ============================================================
-    // World management
+    // WorldModel management
 
     public Collection<AWorld> getWorlds() {
         return worlds.values();
+    }
+
+    public Collection<AWorld> getPlayerOwnedWorlds(String playerName) {
+        Collection<AWorld> results = new ArrayList<>();
+        EntityPlayerMP player = AurionWorld.getEntityPlayer(playerName);
+
+        if (player == null)
+            return results;
+
+        for (AWorld world : worlds.values()) {
+            if (world.ownerUuid.equals(player.getUniqueID().toString()))
+                results.add(world);
+        }
+        return results;
     }
 
     public AWorld getWorld(String name) {
         return worlds.get(name);
     }
 
+    public AWorld getWorld(Integer dimId) {
+        for (AWorld world : getWorlds()) {
+            if (world.dimensionId == dimId)
+                return world;
+        }
+        return null;
+    }
+
+    public void deleteWorld(AWorld world) {
+        WorldServer ws = world.getWorldServer();
+        worlds.remove(world.getName());
+        unloadWorld(world);
+        if (DimensionManager.getWorld(world.dimensionId) == null) {
+            Log.info("START TRY TO DELETE");
+            try {
+                if (DimensionManager.isDimensionRegistered(ws.provider.dimensionId))
+                    DimensionManager.unregisterDimension(ws.provider.dimensionId);
+
+                File path = ws.getChunkSaveLocation(); // new
+                // File(world.getSaveHandler().getWorldDirectory(),
+                // world.provider.getSaveFolder());
+                FileUtils.deleteDirectory(path);
+            } catch (IOException e) {
+                Log.warn("Error deleting dimension files");
+            }
+            world.delete();
+        }
+    }
+
     public void addWorld(AWorld world) throws AWorldException {
-        if (worlds.containsKey(world.getName()))
-            throw new AWorldException(AWorldException.Type.ALREADY_EXISTS);
-        registerWorld(world);
-        loadWorld(world);
+        registerWorld(world, true);
+        loadWorld(world, true);
         worlds.put(world.getName(), world);
         world.save();
     }
 
-    protected void registerWorld(AWorld world) throws AWorldException {
+    protected void registerWorld(AWorld world, boolean newWorld) throws AWorldException {
         world.providerId = getWorldProviderId(world.provider);
         world.worldTypeObj = getWorldTypeByName(world.worldType);
 
-        // Register dimension with last used id if possible
-        if (DimensionManager.isDimensionRegistered(world.dimensionId))
+        if (newWorld) {
             world.dimensionId = DimensionManager.getNextFreeDimId();
-
-        // Register the dimension
+            world.name += "-" + world.dimensionId;
+        }
 
         DimensionManager.registerDimension(world.dimensionId, world.providerId);
-
-        worldsByDim.put(world.dimensionId, world);
     }
 
-    protected void loadWorld(AWorld world) {
-        Log.info("START loadWorld");
+    public void loadWorld(AWorld world) {
+        try {
+            registerWorld(world, false);
+            loadWorld(world, false);
+        } catch (AWorldException e) {
+            switch (e.type) {
+                case NO_PROVIDER:
+                    Log.error(String.format(e.type.error, world.provider));
+                    break;
+                case NO_WORLDTYPE:
+                    Log.error(String.format(e.type.error, world.worldType));
+                    break;
+                default:
+                    Log.error(e.type.error);
+                    break;
+            }
+        }
+    }
+
+    protected void loadWorld(AWorld world, boolean newWorld) {
         if (world.worldLoaded)
             return;
         try {
-            Log.info("TRY loadWorld");
             // Initialize worlds settings
             MinecraftServer mcServer = MinecraftServer.getServer();
             WorldServer overworld = DimensionManager.getWorld(0);
             if (overworld == null)
                 throw new RuntimeException("Cannot hotload dim: Overworld is not Loaded!");
             ISaveHandler savehandler = new AWorldSaveHandler(overworld.getSaveHandler(), world);
-            WorldSettings worldSettings = new WorldSettings(world.seed, WorldSettings.GameType.SURVIVAL, world.mapFeaturesEnabled, false, world.worldTypeObj);
-
+            WorldSettings worldSettings = new WorldSettings(
+                    world.seed,
+                    WorldSettings.GameType.SURVIVAL,
+                    world.structures,
+                    false,
+                    world.worldTypeObj)
+                    .func_82750_a(world.generator);
             // Create WorldServer with settings
-            WorldServer worldServer = new AWorldServer(mcServer, savehandler, //
-                    overworld.getWorldInfo().getWorldName(), world.dimensionId, worldSettings, //
+            WorldServer worldServer = new AWorldServer(mcServer, savehandler,
+                    overworld.getWorldInfo().getWorldName(), world.dimensionId, worldSettings,
                     overworld, mcServer.theProfiler, world);
             // Overwrite dimensionId because WorldProviderEnd for example just hardcodes the dimId
             worldServer.provider.dimensionId = world.dimensionId;
+
+            if (newWorld)
+                world.setSpawn(
+                        worldServer.getSpawnPoint().posX,
+                        worldServer.getSpawnPoint().posY,
+                        worldServer.getSpawnPoint().posZ
+                );
+            else
+                world.setSpawn();
+
+            //worldServer.provider.setS
             worldServer.addWorldAccess(new WorldManager(mcServer, worldServer));
             if (!mcServer.isSinglePlayer())
                 worldServer.getWorldInfo().setGameType(mcServer.getGameType());
+            // SetDifficulty
             mcServer.func_147139_a(mcServer.func_147135_j());
             world.updateWorldSettings();
             world.worldLoaded = true;
+            world.worldLoadIt = true;
             world.error = false;
 
             // Post WorldEvent.Load
@@ -149,15 +237,12 @@ public class AWorldManager {
             channel.attr(FMLOutboundHandler.FML_MESSAGETARGET).set(FMLOutboundHandler.OutboundTarget.ALL);
             channel.writeOutbound(msg);
 
-            Log.info("TRY loadWorld 1");
             // Post WorldEvent.Load
             MinecraftForge.EVENT_BUS.post(new WorldEvent.Load(worldServer));
-            Log.info("TRY loadWorld 2");
         } catch (Exception e) {
             world.error = true;
             throw e;
         }
-        Log.info("TRY loadWorld END");
     }
 
     // ============================================================
