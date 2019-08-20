@@ -1,11 +1,9 @@
 package com.mineaurion.aurionworld.core.commands;
 
-import com.mineaurion.aurionworld.core.Log;
+import com.mineaurion.aurionworld.core.misc.output.Log;
 import com.mineaurion.aurionworld.AurionWorld;
 import net.minecraft.command.CommandBase;
 import net.minecraft.command.ICommandSender;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.server.MinecraftServer;
 import net.minecraftforge.common.config.Configuration;
 
 import java.util.*;

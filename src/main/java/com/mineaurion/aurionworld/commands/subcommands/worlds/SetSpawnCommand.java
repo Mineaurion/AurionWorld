@@ -9,6 +9,8 @@ import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 
+import java.util.Optional;
+
 public class SetSpawnCommand extends SubCommand {
     public SetSpawnCommand(String id, Command parent) {
         super(id, parent);
@@ -25,20 +27,27 @@ public class SetSpawnCommand extends SubCommand {
             return;
         }
 
-        if (!WorldUtil.canDoOwnerAction(sender)) {
+        EntityPlayerMP player = (EntityPlayerMP)sender;
+
+        Optional<AWorld> currentWorld = WorldUtil.whereIsPlayer(player);
+
+        //He is not inside
+        if (!currentWorld.isPresent())
+            return;
+
+        if (!currentWorld.get().canDoOwnerAction(sender, true)) {
             AurionWorld.sendMessage(sender, "You are not allowed to do that!");
             return;
         }
 
         int dimId = ((EntityPlayer)sender).dimension;
-        AWorld world = AurionWorld.getWorldManager().getWorld(dimId);
-        world.setSpawn(
+        currentWorld.get().setSpawn(
                 Double.valueOf(((EntityPlayer)sender).posX).intValue(),
                 Double.valueOf(((EntityPlayer)sender).posY).intValue(),
                 Double.valueOf(((EntityPlayer)sender).posZ).intValue()
         );
 
         AurionWorld.sendMessage(sender, "Your world spawn is now here!");
-        world.save();
+        currentWorld.get().save();
     }
 }

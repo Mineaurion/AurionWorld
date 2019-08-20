@@ -1,6 +1,5 @@
 package com.mineaurion.aurionworld.core.commands;
 
-import com.mineaurion.aurionworld.core.Log;
 import net.minecraft.command.ServerCommandManager;
 
 import java.util.ArrayList;

@@ -6,7 +6,7 @@ import java.util.Map;
 import java.util.UUID;
 
 import com.mineaurion.aurionworld.AurionWorld;
-import com.mineaurion.aurionworld.core.Log;
+import com.mineaurion.aurionworld.core.misc.output.Log;
 import com.mineaurion.aurionworld.core.misc.point.WarpPoint;
 import net.minecraft.block.Block;
 import net.minecraft.entity.Entity;
@@ -19,7 +19,6 @@ import net.minecraft.util.MathHelper;
 import net.minecraft.world.Teleporter;
 import net.minecraft.world.WorldProvider;
 import net.minecraft.world.WorldServer;
-import net.minecraftforge.common.MinecraftForge;
 
 import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;

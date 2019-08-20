@@ -1,7 +1,7 @@
 package com.mineaurion.aurionworld.commands.subcommands.worlds;
 
 import com.mineaurion.aurionworld.AurionWorld;
-import com.mineaurion.aurionworld.core.Log;
+import com.mineaurion.aurionworld.core.misc.output.Log;
 import com.mineaurion.aurionworld.core.commands.Command;
 import com.mineaurion.aurionworld.core.commands.SubCommand;
 import com.mineaurion.aurionworld.world.AWorld;
@@ -9,8 +9,9 @@ import com.mineaurion.aurionworld.world.AWorldException;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayerMP;
 
+import java.util.Optional;
 import java.util.Random;
-
+import java.util.UUID;
 
 public class CreateCommand extends SubCommand {
     public CreateCommand(String id, Command parent) {
@@ -41,17 +42,17 @@ public class CreateCommand extends SubCommand {
             return;
         }
 
-        EntityPlayerMP player = AurionWorld.getEntityPlayer(args[0]);
+        String name = args[0];
+        Optional<UUID> uuid = AurionWorld.getPlayerUuid(name);
 
-        if (player == null) {
-            AurionWorld.sendMessage(sender, "Wooow, player " + args[0] + " doesn't exist!");
+        if (!uuid.isPresent()) {
+            AurionWorld.sendMessage(sender, "Wooow, player " + name + " doesn't exist!");
             return;
         }
 
-        String name = args[0];
-        String ownerUuid = player.getUniqueID().toString();
-        String provider = args[1];//AWorldManager.PROVIDER_NORMAL;
-        String worldType = args[2];//WorldType.DEFAULT.getWorldTypeName();
+        UUID ownerUuid = uuid.get();
+        String provider = args[1];
+        String worldType = args[2];
         long seed = (args.length >= 4) ? Long.getLong(args[3]) : new Random().nextLong();
         String generator = (args.length >= 5) ? args[4] : "";
         boolean structures = (args.length >= 6) && Boolean.getBoolean(args[5]);
@@ -62,6 +63,5 @@ public class CreateCommand extends SubCommand {
         } catch (AWorldException e) {
             e.printStackTrace();
         }
-        //worlds.teleport((EntityPlayerMP)sender, true);
     }
 }

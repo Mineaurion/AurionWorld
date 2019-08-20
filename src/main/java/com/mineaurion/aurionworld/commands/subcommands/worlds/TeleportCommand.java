@@ -7,6 +7,8 @@ import com.mineaurion.aurionworld.world.AWorld;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayerMP;
 
+import java.util.Optional;
+
 public class TeleportCommand extends SubCommand {
     public TeleportCommand(String id, Command parent) {
         super(id, parent);
@@ -20,15 +22,15 @@ public class TeleportCommand extends SubCommand {
     @Override
     public void process(ICommandSender sender, String[] args) {
         AurionWorld.sendMessage(sender, args[0]);
-        AWorld world = AurionWorld.getWorldManager().getWorld(args[0]);
-        if (world == null) {
+        Optional<AWorld> world = AurionWorld.getWorldManager().getWorld(args[0]);
+        if (!world.isPresent()) {
             AurionWorld.sendMessage(sender, "This world doesn't exist!");
             return;
         }
-        if (!world.isLoaded()) {
+        if (!world.get().isLoaded()) {
             AurionWorld.sendMessage(sender, "This world isn't loaded!!");
             return;
         }
-        world.teleport((EntityPlayerMP) sender, true);
+        world.get().teleport((EntityPlayerMP) sender, true);
     }
 }

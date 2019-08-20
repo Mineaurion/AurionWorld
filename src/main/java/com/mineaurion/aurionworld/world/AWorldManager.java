@@ -1,8 +1,7 @@
 package com.mineaurion.aurionworld.world;
 
 import com.mineaurion.aurionworld.AurionWorld;
-import com.mineaurion.aurionworld.core.Log;
-import com.mineaurion.aurionworld.core.misc.point.WorldPoint;
+import com.mineaurion.aurionworld.core.misc.output.Log;
 import com.mineaurion.aurionworld.core.models.WorldModel;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.common.gameevent.TickEvent;
@@ -69,7 +68,6 @@ public class AWorldManager {
 
     // ============================================================
     // Worlds management
-
     private HashMap<String, AWorld> loadAllWorldFromDb() {
         List<WorldModel> worldModels = WorldModel.findAll();
         HashMap<String, AWorld> results = new HashMap<>();
@@ -121,16 +119,19 @@ public class AWorldManager {
         return worlds.values();
     }
 
-    public AWorld getWorld(String name) {
-        return worlds.get(name);
+    public Optional<AWorld> getWorld(String name) {
+        AWorld world = worlds.get(name);
+        if (world == null)
+            return Optional.empty();
+        return Optional.of(world);
     }
 
-    public AWorld getWorld(Integer dimId) {
+    public Optional<AWorld> getWorld(Integer dimId) {
         for (AWorld world : getWorlds()) {
             if (world.dimensionId == dimId)
-                return world;
+                return Optional.of(world);
         }
-        return null;
+        return Optional.empty();
     }
 
     public void addWorld(AWorld world) throws AWorldException {
@@ -185,7 +186,6 @@ public class AWorldManager {
             else
                 world.setSpawn();
 
-            //worldServer.provider.setS
             worldServer.addWorldAccess(new WorldManager(mcServer, worldServer));
             if (!mcServer.isSinglePlayer())
                 worldServer.getWorldInfo().setGameType(mcServer.getGameType());
@@ -266,15 +266,11 @@ public class AWorldManager {
         }
     }
 
-    public Collection<AWorld> getPlayerOwnedWorlds(String playerName) {
+    public Collection<AWorld> getPlayerWorlds(UUID uuid) {
         Collection<AWorld> results = new ArrayList<>();
-        EntityPlayerMP player = AurionWorld.getEntityPlayer(playerName);
-
-        if (player == null)
-            return results;
 
         for (AWorld world : worlds.values()) {
-            if (world.ownerUuid.equals(player.getUniqueID().toString()))
+            if (world.ownerUuid.equals(uuid))
                 results.add(world);
         }
         return results;

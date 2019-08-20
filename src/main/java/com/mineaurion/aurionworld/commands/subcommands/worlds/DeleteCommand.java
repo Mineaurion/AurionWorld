@@ -7,6 +7,8 @@ import com.mineaurion.aurionworld.core.misc.WorldUtil;
 import com.mineaurion.aurionworld.world.AWorld;
 import net.minecraft.command.ICommandSender;
 
+import java.util.Optional;
+
 public class DeleteCommand extends SubCommand {
     public DeleteCommand(String id, Command parent) {
         super(id, parent);
@@ -18,8 +20,8 @@ public class DeleteCommand extends SubCommand {
             return;
         }
 
-        AWorld world = AurionWorld.getWorldManager().getWorld(args[0]);
-        if (world == null) {
+        Optional<AWorld> world = AurionWorld.getWorldManager().getWorld(args[0]);
+        if (!world.isPresent()) {
             AurionWorld.sendMessage(sender, "This world doesn't exist!");
             return;
         }
@@ -28,6 +30,6 @@ public class DeleteCommand extends SubCommand {
             return;
         }
 
-        AurionWorld.getWorldManager().deleteWorld(world);
+        AurionWorld.getWorldManager().deleteWorld(world.get());
     }
 }

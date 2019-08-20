@@ -1,6 +1,6 @@
 package com.mineaurion.aurionworld;
 
-import com.mineaurion.aurionworld.core.Log;
+import com.mineaurion.aurionworld.core.misc.output.Log;
 import com.mineaurion.aurionworld.core.commands.Command;
 import com.mineaurion.aurionworld.core.commands.CommandManager;
 //import com.mineaurion.aurionworld.core.database.Mysql;
@@ -11,8 +11,6 @@ import com.mojang.authlib.GameProfile;
 import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.Mod;
 import cpw.mods.fml.common.event.*;
-import cpw.mods.fml.common.eventhandler.SubscribeEvent;
-import cpw.mods.fml.common.gameevent.TickEvent;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import net.minecraft.command.ICommandSender;
@@ -22,17 +20,16 @@ import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.management.PlayerProfileCache;
 import net.minecraft.server.management.UserListOps;
-import net.minecraft.server.management.UserListOpsEntry;
 import net.minecraft.util.ChatComponentText;
+import net.minecraftforge.common.UsernameCache;
 import net.minecraftforge.common.config.Configuration;
 import org.javalite.activejdbc.Base;
+import scala.tools.ant.sabbus.Use;
 //import org.javalite.activejdbc.Base;
 
 import java.io.*;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 @Mod(modid = AurionWorld.MODID, name = AurionWorld.NAME, version = AurionWorld.VERSION, acceptableRemoteVersions = "*")
 @SideOnly(Side.SERVER)
@@ -100,7 +97,7 @@ public class AurionWorld {
 
     @Mod.EventHandler
     public void postInit(FMLPostInitializationEvent event) {
-        _worldManager  = new AWorldManager();
+        _worldManager = new AWorldManager();
         FMLCommonHandler.instance().bus().register(_worldManager);
     }
 
@@ -153,8 +150,7 @@ public class AurionWorld {
         return _worldManager;
     }
 
-    public static List<EntityPlayerMP> getPlayerList()
-    {
+    public static List<EntityPlayerMP> getPlayerList() {
         MinecraftServer mc = MinecraftServer.getServer();
         return mc == null || mc.getConfigurationManager() == null ? new ArrayList<>() : mc.getConfigurationManager().playerEntityList;
     }
@@ -183,11 +179,18 @@ public class AurionWorld {
         return opsList.func_152700_a(playerName) != null;
     }
 
-    public static EntityPlayerMP getEntityPlayer(String name) {
-        return MinecraftServer.getServer().getConfigurationManager().func_152612_a(name);
+
+    public static Optional<String> getPlayerName(UUID uuid) {
+        if (UsernameCache.containsUUID(uuid))
+            return Optional.empty();
+        return Optional.ofNullable(UsernameCache.getLastKnownUsername(uuid));
     }
 
-    public static GameProfile getEntityPlayer(UUID uuid) {
-        return MinecraftServer.getServer().func_152358_ax().func_152652_a(uuid);
+    public static Optional<UUID> getPlayerUuid(String name) {
+        for (Map.Entry<UUID, String> entry : UsernameCache.getMap().entrySet()) {
+            if (entry.getValue().equals(name))
+                return Optional.ofNullable(entry.getKey());
+        }
+        return Optional.empty();
     }
 }

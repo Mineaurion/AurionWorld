@@ -9,6 +9,8 @@ import net.minecraft.util.ChatComponentStyle;
 import net.minecraft.util.ChatComponentText;
 
 import java.util.Collection;
+import java.util.Optional;
+import java.util.UUID;
 
 public class InfoCommand extends SubCommand {
     public InfoCommand(String id, Command parent) {
@@ -20,12 +22,18 @@ public class InfoCommand extends SubCommand {
         if (args.length != 1)
             return;
 
-        String arg = args[0];
-        Collection<AWorld> playerOwnedWorlds = AurionWorld.getWorldManager().getPlayerOwnedWorlds(arg);
-        AWorld world;
-        if (!playerOwnedWorlds.isEmpty()) {
-            StringBuilder info = new StringBuilder("Worlds owned by '" + arg + "' (" + playerOwnedWorlds.size() + ")");
-            for (AWorld w : playerOwnedWorlds) {
+        String playerName = args[0];
+        Optional<UUID> uuid = AurionWorld.getPlayerUuid(playerName);
+
+        // Player doesn't exist
+        if (!uuid.isPresent()) {
+            return;
+        }
+
+        Collection<AWorld> playerWorlds = AurionWorld.getWorldManager().getPlayerWorlds(uuid.get());
+        if (!playerWorlds.isEmpty()) {
+            StringBuilder info = new StringBuilder(playerName + "worlds infos ("+ playerWorlds.size() +")");
+            for (AWorld w : playerWorlds) {
                 info.append("\n-----------------------------");
                 info.append("\n- DimId : ");
                 info.append(w.getDimensionId());
@@ -37,15 +45,6 @@ public class InfoCommand extends SubCommand {
                 info.append(w.getWorldType());
             }
             AurionWorld.sendMessage(sender, info.toString());
-        } else {
-            try {
-                int dimId = Integer.valueOf(arg);
-                world = AurionWorld.getWorldManager().getWorld(dimId);
-                if (world == null)
-                    throw new Exception();
-            } catch (Exception e) {
-                AurionWorld.sendMessage(sender, "This world doesn't exist!");
-            }
         }
     }
 }

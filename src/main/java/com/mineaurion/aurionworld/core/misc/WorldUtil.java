@@ -8,6 +8,9 @@ import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.world.World;
+import scala.tools.cmd.Opt;
+
+import java.util.Optional;
 
 public abstract class WorldUtil {
 
@@ -82,27 +85,11 @@ public abstract class WorldUtil {
         player.setPositionAndUpdate(p.getX() + 0.5, p.getY(), p.getZ() + 0.5);
     }
 
-    /* ------------------------------------------------------------ */
-
-    public static boolean canDoOwnerAction(ICommandSender sender, AWorld world) {
-        if (AurionWorld.isServer(sender))
-            return true;
-        String playerName = sender.getCommandSenderName();
-        return(AurionWorld.isOp(sender) || world.isOwner(playerName));
+    public static Optional<AWorld> whereIsPlayer(EntityPlayerMP player) {
+        if (player == null)
+            return Optional.empty();
+        return AurionWorld.getWorldManager().getWorld(player.dimension);
     }
 
-    public static boolean canDoOwnerAction(ICommandSender sender) {
-        String playerName = sender.getCommandSenderName();
-        EntityPlayerMP player = AurionWorld.getEntityPlayer(playerName);
-
-        int dimId = player.dimension;
-        AWorld world = AurionWorld.getWorldManager().getWorld(dimId);
-        if (world == null)
-            return false;
-
-        if (!(AurionWorld.isOp(sender) || (world.isOwner(playerName))))
-            return false;
-        return true;
-    }
 }
 

@@ -1,4 +1,4 @@
-package com.mineaurion.aurionworld.core;
+package com.mineaurion.aurionworld.core.misc.output;
 
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.world.World;

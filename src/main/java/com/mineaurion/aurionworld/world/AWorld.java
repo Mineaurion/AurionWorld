@@ -1,31 +1,34 @@
 package com.mineaurion.aurionworld.world;
 
 import com.mineaurion.aurionworld.AurionWorld;
-import com.mineaurion.aurionworld.core.Log;
+import com.mineaurion.aurionworld.core.misc.output.Log;
 import com.mineaurion.aurionworld.core.misc.WorldUtil;
 import com.mineaurion.aurionworld.core.misc.point.WarpPoint;
 import com.mineaurion.aurionworld.core.misc.point.WorldPoint;
 import com.mineaurion.aurionworld.core.misc.teleporter.TeleportHelper;
+import com.mineaurion.aurionworld.core.models.WorldMemberModel;
 import com.mineaurion.aurionworld.core.models.WorldModel;
 import net.minecraft.command.ICommandSender;
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.WorldServer;
 import net.minecraft.world.WorldType;
-import net.minecraft.world.chunk.storage.AnvilChunkLoader;
-import net.minecraftforge.common.DimensionManager;
 
-import java.io.File;
-import java.util.Random;
+import java.util.ArrayList;
+import java.util.UUID;
 
 public class AWorld {
     public WorldModel model;
+
+    public static int LEVEL_MEMBER = 1;
+    public static int LEVEL_MEMBER_OWNER = 2;
 
     // Model Attributes
     protected int id;
     protected String name;
     protected int dimensionId;
-    protected String ownerUuid;
+    protected UUID ownerUuid;
     protected String worldType;
     protected String provider;
     protected long seed;
@@ -33,6 +36,7 @@ public class AWorld {
     protected boolean structures;
     protected boolean worldLoadIt;
     protected WorldPoint spawnPoint = null;
+    protected ArrayList<WorldMemberModel> members = new ArrayList<>();
 
 
     // Helper
@@ -42,7 +46,7 @@ public class AWorld {
 
     protected boolean error;
 
-    public AWorld(String name, String ownerUuid, String provider, String worldType, long seed, String generator, boolean structures) {
+    public AWorld(String name, UUID ownerUuid, String provider, String worldType, long seed, String generator, boolean structures) {
         this.model = new WorldModel();
 
         this.name = name;
@@ -61,7 +65,7 @@ public class AWorld {
         this.id = (Integer) model.get("id");
         this.dimensionId = (Integer) model.get("dimension_id");
         this.name = (String) model.get("name");
-        this.ownerUuid = (String) model.get("owner_uuid");
+        this.ownerUuid = UUID.fromString((String)model.get("owner_uuid"));
         this.provider = (String) model.get("provider");
         this.worldType = (String) model.get("type");
         this.seed = (long) model.get("seed");
@@ -97,7 +101,7 @@ public class AWorld {
         // Set all Attribute Model
         this.model.set("name", name);
         this.model.set("dimension_id", dimensionId);
-        this.model.set("owner_uuid", ownerUuid);
+        this.model.set("owner_uuid", ownerUuid.toString());
         this.model.set("type", worldType);
         this.model.set("provider", provider);
         this.model.set("seed", seed);
@@ -120,9 +124,6 @@ public class AWorld {
     public void updateWorldSettings() {
         if (!worldLoaded)
             return;
-        //WorldServer worldServer = getWorldServer();
-        // worldServer.difficultySetting = difficulty;
-        // worldServer.setAllowedSpawnTypes(allowHostileCreatures, allowPeacefulCreatures);
     }
 
     public void removeAllPlayersFromWorld() {
@@ -179,20 +180,52 @@ public class AWorld {
         // ChatOutputHandler.sendMessage(player, new ChatComponentText(msg));
     }
 
-    public boolean isMemberOwner(String playerName) {
-        return false;
+    // ============================================================
+    // Member Management
+    public boolean isOwner(UUID uuid) {
+        return true;
     }
 
-    public boolean isMember() {
-        return false;
+    public boolean isMember(UUID uuid) {
+        return true;
     }
 
-    public boolean isOwner(String name) {
-        EntityPlayerMP player = AurionWorld.getEntityPlayer(name);
-        if (player == null)
+    public boolean isUniqueOwner(UUID uuid) {
+        return (uuid).equals(this.ownerUuid);
+    }
+
+    // ============================================================
+    // Permission Actions Management
+    public boolean canDoMemberAction(ICommandSender sender, boolean beInside) {
+        if (AurionWorld.isServer(sender) && !beInside)
+            return true;
+        if (!AurionWorld.isPlayer(sender))
             return false;
-        return player.getUniqueID().toString().equals(this.ownerUuid);
+
+        EntityPlayerMP player = (EntityPlayerMP)sender;
+        if (AurionWorld.isOp(sender))
+            return true;
+
+        return isMember(player.getUniqueID());
     }
+
+    public boolean canDoOwnerAction(ICommandSender sender, boolean beInside) {
+        if (AurionWorld.isServer(sender) && !beInside)
+            return true;
+        if (!AurionWorld.isPlayer(sender))
+            return false;
+        EntityPlayerMP player = (EntityPlayerMP)sender;
+        if (beInside && isInside(player))
+        if (AurionWorld.isOp(sender))
+            return true;
+
+        return isOwner(player.getUniqueID());
+    }
+
+    public boolean isInside(EntityPlayerMP player) {
+        return player.dimension == this.dimensionId;
+    }
+
 
     // ============================================================
     // Getters and Setters
