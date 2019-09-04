@@ -1,13 +1,13 @@
 package com.mineaurion.aurionworld.commands.subcommands.worlds;
 
 import com.mineaurion.aurionworld.AurionWorld;
+import com.mineaurion.aurionworld.core.misc.output.ChatHandler;
 import com.mineaurion.aurionworld.core.misc.output.Log;
 import com.mineaurion.aurionworld.core.commands.Command;
 import com.mineaurion.aurionworld.core.commands.SubCommand;
 import com.mineaurion.aurionworld.world.AWorld;
 import com.mineaurion.aurionworld.world.AWorldException;
 import net.minecraft.command.ICommandSender;
-import net.minecraft.entity.player.EntityPlayerMP;
 
 import java.util.Optional;
 import java.util.Random;
@@ -19,15 +19,15 @@ public class CreateCommand extends SubCommand {
     }
 
     public void listsInfo(ICommandSender sender) {
-        AurionWorld.sendMessage(sender, "Available worlds providers:");
+        ChatHandler.sendMessage(sender, "Available worlds providers:");
         for (String provider : AurionWorld.getWorldManager().getWorldProviders().keySet())
-            AurionWorld.sendMessage(sender, "  " + provider.toLowerCase());
+            ChatHandler.sendMessage(sender, "  " + provider.toLowerCase());
 
-        AurionWorld.sendMessage(sender, "Available worlds types:");
+        ChatHandler.sendMessage(sender, "Available worlds types:");
         for (String worldType : AurionWorld.getWorldManager().getWorldTypes().keySet())
-            AurionWorld.sendMessage(sender, "  " + worldType.toLowerCase());
+            ChatHandler.sendMessage(sender, "  " + worldType.toLowerCase());
 
-        AurionWorld.sendMessage(sender, getCommandUsage(sender));
+        ChatHandler.sendMessage(sender, getCommandUsage(sender));
     }
 
     @Override
@@ -46,7 +46,7 @@ public class CreateCommand extends SubCommand {
         Optional<UUID> uuid = AurionWorld.getPlayerUuid(name);
 
         if (!uuid.isPresent()) {
-            AurionWorld.sendMessage(sender, "Wooow, player " + name + " doesn't exist!");
+            ChatHandler.sendMessage(sender, "Wooow, player " + name + " doesn't exist!");
             return;
         }
 
@@ -60,7 +60,7 @@ public class CreateCommand extends SubCommand {
         AWorld world = new AWorld(name, ownerUuid, provider, worldType, seed, generator, structures);
         try {
             AurionWorld.getWorldManager().addWorld(world);
-            AurionWorld.sendMessage(sender, "World " + world.getName() + " has been created succesfully!");
+            ChatHandler.sendMessage(sender, "World " + world.getName() + " has been created succesfully!");
         } catch (AWorldException e) {
             e.printStackTrace();
         }

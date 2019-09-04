@@ -75,7 +75,7 @@ public abstract class Command extends CommandBase {
             if (!AurionWorld.isPlayer(sender) && onlyPlayer())
                 throw new UsageException("This command is only for EntityPlayer!");
         } catch (UsageException ue) {
-            AurionWorld.sendMessage(sender, "This command is only for EntityPlayer!");
+            ChatHandler.sendMessage(sender, "This command is only for EntityPlayer!");
             return;
         }
 
@@ -94,8 +94,8 @@ public abstract class Command extends CommandBase {
                     throw new UsageException();
             }
         } catch (UsageException ue) {
-            AurionWorld.sendMessage(sender, "Unknow command " + getFullId().replace(".", " ") + " " + args[0]);
-            AurionWorld.sendMessage(sender, getCommandUsage(sender));
+            ChatHandler.sendMessage(sender, "Unknow command " + getFullId().replace(".", " ") + " " + args[0]);
+            ChatHandler.sendMessage(sender, getCommandUsage(sender));
             return;
         }
         process(sender, args);

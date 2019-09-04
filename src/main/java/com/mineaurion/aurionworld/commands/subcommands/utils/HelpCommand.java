@@ -3,6 +3,7 @@ package com.mineaurion.aurionworld.commands.subcommands.utils;
 import com.mineaurion.aurionworld.core.commands.Command;
 import com.mineaurion.aurionworld.core.commands.SubCommand;
 import com.mineaurion.aurionworld.AurionWorld;
+import com.mineaurion.aurionworld.core.misc.output.ChatHandler;
 import net.minecraft.command.ICommandSender;
 
 public class HelpCommand extends SubCommand {
@@ -12,6 +13,6 @@ public class HelpCommand extends SubCommand {
 
     @Override
     public void process(ICommandSender sender, String[] args) {
-        AurionWorld.sendMessage(sender, "Help Message!");
+        ChatHandler.sendMessage(sender, "Help Message!");
     }
 }

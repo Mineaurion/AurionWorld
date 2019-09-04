@@ -36,7 +36,7 @@ public class SetSpawnCommand extends SubCommand {
             return;
 
         if (!currentWorld.get().canDoOwnerAction(sender, true)) {
-            AurionWorld.sendMessage(sender, "You are not allowed to do that!");
+            ChatHandler.sendMessage(sender, "You are not allowed to do that!");
             return;
         }
 
@@ -48,6 +48,6 @@ public class SetSpawnCommand extends SubCommand {
         );
 
         currentWorld.get().save();
-        AurionWorld.sendMessage(sender, "Your world spawn is now here!");
+        ChatHandler.sendMessage(sender, "Your world spawn is now here!");
     }
 }

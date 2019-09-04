@@ -4,6 +4,7 @@ import com.mineaurion.aurionworld.AurionWorld;
 import com.mineaurion.aurionworld.core.commands.Command;
 import com.mineaurion.aurionworld.core.commands.SubCommand;
 import com.mineaurion.aurionworld.core.misc.WorldUtil;
+import com.mineaurion.aurionworld.core.misc.output.ChatHandler;
 import com.mineaurion.aurionworld.world.AWorld;
 import net.minecraft.command.ICommandSender;
 
@@ -22,23 +23,23 @@ public class LoadCommand extends SubCommand {
 
         Optional<AWorld> world = AurionWorld.getWorldManager().getWorld(args[0]);
         if (!world.isPresent()) {
-            AurionWorld.sendMessage(sender, "This world doesn't exist!");
+            ChatHandler.sendMessage(sender, "This world doesn't exist!");
             return;
         }
         if (!AurionWorld.isOp(sender)) {
-            AurionWorld.sendMessage(sender, "You are not allowed to do that!");
+            ChatHandler.sendMessage(sender, "You are not allowed to do that!");
             return;
         }
         if (world.get().isLoaded()) {
-            AurionWorld.sendMessage(sender, "This world is already loaded!");
+            ChatHandler.sendMessage(sender, "This world is already loaded!");
             return;
         }
 
         AurionWorld.getWorldManager().loadWorld(world.get(), false);
 
         if (world.get().isLoaded())
-            AurionWorld.sendMessage(sender, "World " + world.get().getName() + " start loading");
+            ChatHandler.sendMessage(sender, "World " + world.get().getName() + " start loading");
         else
-            AurionWorld.sendMessage(sender, "World " + world.get().getName() + " can't be loaded");
+            ChatHandler.sendMessage(sender, "World " + world.get().getName() + " can't be loaded");
     }
 }

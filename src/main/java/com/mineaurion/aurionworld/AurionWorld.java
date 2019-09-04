@@ -119,29 +119,6 @@ public class AurionWorld {
         //Mysql.close();
     }
 
-    public static void sendMessage(ICommandSender commandSender, String message) {
-        if (commandSender == MinecraftServer.getServer()) {
-            Log.info(message);
-            return;
-        }
-        while (message != null) {
-            int nlIndex = message.indexOf('\n');
-            String sent;
-            if (nlIndex == -1) {
-                sent = message;
-                message = null;
-            } else {
-                sent = message.substring(0, nlIndex);
-                message = message.substring(nlIndex + 1);
-            }
-            commandSender.addChatMessage(new ChatComponentText(sent));
-        }
-    }
-
-    public static void sendMessage(ICommandSender sender, ChatComponentText message) {
-        sender.addChatMessage(message);
-    }
-
     public static Configuration getConfig() {
         return _configuration;
     }

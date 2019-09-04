@@ -6,6 +6,7 @@ import java.util.Map;
 import java.util.UUID;
 
 import com.mineaurion.aurionworld.AurionWorld;
+import com.mineaurion.aurionworld.core.misc.output.ChatHandler;
 import com.mineaurion.aurionworld.core.misc.output.Log;
 import com.mineaurion.aurionworld.core.misc.point.WarpPoint;
 import net.minecraft.block.Block;
@@ -82,7 +83,7 @@ public class TeleportHelper
         {
             if (playerPos.distance(new WarpPoint(player)) > 0.2)
             {
-                AurionWorld.sendMessage(player, "Teleport cancelled.");
+                ChatHandler.sendMessage(player, "Teleport cancelled.");
                 return true;
             }
             if (System.currentTimeMillis() - start < timeout)
@@ -90,7 +91,7 @@ public class TeleportHelper
                 return false;
             }
             checkedTeleport(player, point);
-            AurionWorld.sendMessage(player, "Teleported.");
+            ChatHandler.sendMessage(player, "Teleported.");
             return true;
         }
 
@@ -116,7 +117,7 @@ public class TeleportHelper
             MinecraftServer.getServer().worldServerForDimension(point.getDimension());
             if (point.getWorld() == null)
             {
-                AurionWorld.sendMessage(player, "Unable to teleport! Target dimension does not exist");
+                ChatHandler.sendMessage(player, "Unable to teleport! Target dimension does not exist");
                 return;
             }
         }
@@ -126,7 +127,7 @@ public class TeleportHelper
 
         if (!canTeleportTo(point))
         {
-            AurionWorld.sendMessage(player, "Unable to teleport! Target location obstructed.");
+            ChatHandler.sendMessage(player, "Unable to teleport! Target location obstructed.");
             return;
         }
     }
@@ -146,7 +147,7 @@ public class TeleportHelper
     {
         if (!canTeleportTo(point))
         {
-            AurionWorld.sendMessage(player, "Unable to teleport! Target location obstructed.");
+            ChatHandler.sendMessage(player, "Unable to teleport! Target location obstructed.");
             return;
         }
 

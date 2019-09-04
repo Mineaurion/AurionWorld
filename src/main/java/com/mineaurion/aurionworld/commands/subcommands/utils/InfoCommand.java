@@ -3,6 +3,7 @@ package com.mineaurion.aurionworld.commands.subcommands.utils;
 import com.mineaurion.aurionworld.AurionWorld;
 import com.mineaurion.aurionworld.core.commands.Command;
 import com.mineaurion.aurionworld.core.commands.SubCommand;
+import com.mineaurion.aurionworld.core.misc.output.ChatHandler;
 import com.mineaurion.aurionworld.world.AWorld;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.util.ChatComponentStyle;
@@ -27,7 +28,7 @@ public class InfoCommand extends SubCommand {
 
         // Player doesn't exist
         if (!uuid.isPresent()) {
-            AurionWorld.sendMessage(sender, "Player " + playerName + "doesnt'exist!");
+            ChatHandler.sendMessage(sender, "Player " + playerName + "doesnt'exist!");
             return;
         }
 
@@ -45,9 +46,9 @@ public class InfoCommand extends SubCommand {
                 info.append(" ; - Type : ");
                 info.append(w.getWorldType());
             }
-            AurionWorld.sendMessage(sender, info.toString());
+            ChatHandler.sendMessage(sender, info.toString());
         }  else {
-            AurionWorld.sendMessage(sender, "Player " + playerName + " isn't attached to any world!");
+            ChatHandler.sendMessage(sender, "Player " + playerName + " isn't attached to any world!");
         }
     }
 }

@@ -21,18 +21,18 @@ public class UnloadCommand extends SubCommand {
 
         Optional<AWorld> world = AurionWorld.getWorldManager().getWorld(args[0]);
         if (!world.isPresent()) {
-            AurionWorld.sendMessage(sender, "This world doesn't exist!");
+            ChatHandler.sendMessage(sender, "This world doesn't exist!");
             return;
         }
         if (!AurionWorld.isOp(sender)) {
-            AurionWorld.sendMessage(sender, "You are not allowed to do that!");
+            ChatHandler.sendMessage(sender, "You are not allowed to do that!");
             return;
         }
         if (!world.get().isLoaded()) {
-            AurionWorld.sendMessage(sender, "This world is already unloaded!");
+            ChatHandler.sendMessage(sender, "This world is already unloaded!");
             return;
         }
         AurionWorld.getWorldManager().unloadWorld(world.get(), false);
-        AurionWorld.sendMessage(sender, "World " + world.get().getName() + " has been sucessfully unloaded!");
+        ChatHandler.sendMessage(sender, "World " + world.get().getName() + " has been sucessfully unloaded!");
     }
 }
