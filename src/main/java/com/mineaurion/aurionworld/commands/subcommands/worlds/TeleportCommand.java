@@ -32,5 +32,6 @@ public class TeleportCommand extends SubCommand {
             return;
         }
         world.get().teleport((EntityPlayerMP) sender, true);
+        AurionWorld.sendMessage(sender, "You have been teleported to the world " + world.get().getName());
     }
 }

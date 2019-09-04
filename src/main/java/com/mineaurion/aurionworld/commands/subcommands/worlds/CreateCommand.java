@@ -53,13 +53,14 @@ public class CreateCommand extends SubCommand {
         UUID ownerUuid = uuid.get();
         String provider = args[1];
         String worldType = args[2];
-        long seed = (args.length >= 4) ? Long.getLong(args[3]) : new Random().nextLong();
+        long seed = (args.length >= 4) ? Long.parseLong(args[3]) : new Random().nextLong();
         String generator = (args.length >= 5) ? args[4] : "";
-        boolean structures = (args.length >= 6) && Boolean.getBoolean(args[5]);
+        boolean structures = (args.length >= 6) && Boolean.parseBoolean(args[5]);
 
         AWorld world = new AWorld(name, ownerUuid, provider, worldType, seed, generator, structures);
         try {
             AurionWorld.getWorldManager().addWorld(world);
+            AurionWorld.sendMessage(sender, "World " + world.getName() + " has been created succesfully!");
         } catch (AWorldException e) {
             e.printStackTrace();
         }

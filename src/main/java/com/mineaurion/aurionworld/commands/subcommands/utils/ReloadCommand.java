@@ -13,6 +13,6 @@ public class ReloadCommand extends SubCommand {
     @Override
     public void process(ICommandSender sender, String[] args) {
         AurionWorld.reload();
-        AurionWorld.sendMessage(sender, "Plugin reloaded!");
+        AurionWorld.sendMessage(sender, "Plugin AurionWorld has been reloaded!");
     }
 }

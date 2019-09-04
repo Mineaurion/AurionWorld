@@ -22,6 +22,10 @@ public class Log {
         LOGGER.info(msg);
     }
 
+    public static void debug(String msg) {
+        LOGGER.debug(msg);
+    }
+
     public static void trace(String msg) {
         LOGGER.trace(msg);
     }

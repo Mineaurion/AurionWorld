@@ -33,6 +33,6 @@ public class UnloadCommand extends SubCommand {
             return;
         }
         AurionWorld.getWorldManager().unloadWorld(world.get(), false);
-        AurionWorld.sendMessage(sender, "World " + world.get().getName() + " start the unloading");
+        AurionWorld.sendMessage(sender, "World " + world.get().getName() + " has been sucessfully unloaded!");
     }
 }

@@ -29,7 +29,8 @@ public class DeleteCommand extends SubCommand {
             AurionWorld.sendMessage(sender, "You are not allowed to do that!");
             return;
         }
-
+        String name = world.get().getName();
         AurionWorld.getWorldManager().deleteWorld(world.get());
+        AurionWorld.sendMessage(sender, "World " + name + " has been succesfully deleted!");
     }
 }

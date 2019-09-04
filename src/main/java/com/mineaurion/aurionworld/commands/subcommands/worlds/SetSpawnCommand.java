@@ -47,7 +47,7 @@ public class SetSpawnCommand extends SubCommand {
                 Double.valueOf(((EntityPlayer)sender).posZ).intValue()
         );
 
-        AurionWorld.sendMessage(sender, "Your world spawn is now here!");
         currentWorld.get().save();
+        AurionWorld.sendMessage(sender, "Your world spawn is now here!");
     }
 }

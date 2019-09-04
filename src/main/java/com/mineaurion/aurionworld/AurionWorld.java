@@ -152,7 +152,7 @@ public class AurionWorld {
 
     public static List<EntityPlayerMP> getPlayerList() {
         MinecraftServer mc = MinecraftServer.getServer();
-        return mc == null || mc.getConfigurationManager() == null ? new ArrayList<>() : mc.getConfigurationManager().playerEntityList;
+        return (mc == null || mc.getConfigurationManager() == null) ? new ArrayList<EntityPlayerMP>() : mc.getConfigurationManager().playerEntityList;
     }
 
     public static void reload() {
@@ -181,7 +181,7 @@ public class AurionWorld {
 
 
     public static Optional<String> getPlayerName(UUID uuid) {
-        if (UsernameCache.containsUUID(uuid))
+        if (!UsernameCache.containsUUID(uuid))
             return Optional.empty();
         return Optional.ofNullable(UsernameCache.getLastKnownUsername(uuid));
     }

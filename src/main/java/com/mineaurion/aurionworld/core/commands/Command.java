@@ -79,7 +79,7 @@ public abstract class Command extends CommandBase {
             return;
         }
 
-        Log.info(getFullId() + " executed!");
+        Log.debug(getFullId() + " executed!");
         // Try to run Subcommand if exist!
         try {
             if (hasSubCommands() && args.length >= 1) {
@@ -94,6 +94,7 @@ public abstract class Command extends CommandBase {
                     throw new UsageException();
             }
         } catch (UsageException ue) {
+            AurionWorld.sendMessage(sender, "Unknow command " + getFullId().replace(".", " ") + " " + args[0]);
             AurionWorld.sendMessage(sender, getCommandUsage(sender));
             return;
         }

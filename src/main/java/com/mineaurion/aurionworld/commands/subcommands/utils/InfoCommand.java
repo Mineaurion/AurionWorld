@@ -27,6 +27,7 @@ public class InfoCommand extends SubCommand {
 
         // Player doesn't exist
         if (!uuid.isPresent()) {
+            AurionWorld.sendMessage(sender, "Player " + playerName + "doesnt'exist!");
             return;
         }
 
@@ -45,6 +46,8 @@ public class InfoCommand extends SubCommand {
                 info.append(w.getWorldType());
             }
             AurionWorld.sendMessage(sender, info.toString());
+        }  else {
+            AurionWorld.sendMessage(sender, "Player " + playerName + " isn't attached to any world!");
         }
     }
 }
