@@ -1,5 +1,6 @@
 package com.mineaurion.aurionworld.core.commands;
 
+import com.mineaurion.aurionworld.core.misc.output.ChatHandler;
 import com.mineaurion.aurionworld.core.misc.output.Log;
 import com.mineaurion.aurionworld.AurionWorld;
 import net.minecraft.command.CommandBase;
