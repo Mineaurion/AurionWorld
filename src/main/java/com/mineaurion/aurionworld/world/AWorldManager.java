@@ -38,6 +38,11 @@ public class AWorldManager {
     protected Map<String, Integer> worldProviderClasses = new HashMap<>();
     protected Map<String, WorldType> worldTypes = new HashMap<>();
 
+    /**
+     * Event handler for new clients that need to know about our worlds
+     */
+    protected AWorldEventHandler eventHandler = new AWorldEventHandler(this);
+
     public AWorldManager() {
 
     }
