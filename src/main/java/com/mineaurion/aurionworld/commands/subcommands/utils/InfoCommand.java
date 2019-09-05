@@ -39,12 +39,22 @@ public class InfoCommand extends SubCommand {
                 info.append("\n-----------------------------");
                 info.append("\n- DimId : ");
                 info.append(w.getDimensionId());
-                info.append(" ; - Name : ");
+                info.append("\n- Name : ");
                 info.append(w.getName());
-                info.append(" ; - Provider : ");
+                info.append("\n- Provider : ");
                 info.append(w.getProvider());
-                info.append(" ; - Type : ");
+                info.append("\n- Type : ");
                 info.append(w.getWorldType());
+                info.append("\n- Structures : ");
+                info.append(w.isStructures());
+                info.append("\n- Loaded : ");
+                info.append(w.isLoaded());
+                info.append("\n- Load it : ");
+                info.append(w.isLoadIt());
+                info.append("\n- Seed : ");
+                info.append(w.getSeed());
+                info.append("\n- Generator : ");
+                info.append(w.getGenerator());
             }
             ChatHandler.sendMessage(sender, info.toString());
         }  else {

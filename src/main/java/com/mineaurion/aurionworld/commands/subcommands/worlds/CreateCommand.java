@@ -42,6 +42,11 @@ public class CreateCommand extends SubCommand {
             return;
         }
 
+        if (args.length > 6) {
+            ChatHandler.chatError(sender, "Too many params");
+            return;
+        }
+
         String name = args[0];
         Optional<UUID> uuid = AurionWorld.getPlayerUuid(name);
 

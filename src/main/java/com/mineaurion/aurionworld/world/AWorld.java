@@ -31,6 +31,11 @@ public class AWorld {
     protected UUID ownerUuid;
     protected String worldType;
     protected String provider;
+
+    public boolean isStructures() {
+        return structures;
+    }
+
     protected long seed;
     protected String generator;
     protected boolean structures;
@@ -254,7 +259,20 @@ public class AWorld {
         return worldType;
     }
 
+    public long getSeed() {
+        return seed;
+    }
+
+    public String getGenerator() {
+        return generator;
+    }
+
     public boolean isLoaded() {
         return worldLoaded;
     }
+
+    public boolean isLoadIt() {
+        return worldLoadIt;
+    }
+
 }
