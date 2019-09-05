@@ -73,7 +73,7 @@ public abstract class Command extends CommandBase {
     @Override
     public void processCommand(ICommandSender sender, String[] args) {
         try {
-            if (!AurionWorld.isPlayer(sender) && onlyPlayer())
+            if (!AurionWorld.isPlayer(sender) && isPlayerOnly())
                 throw new UsageException("This command is only for EntityPlayer!");
         } catch (UsageException ue) {
             ChatHandler.sendMessage(sender, "This command is only for EntityPlayer!");
@@ -95,7 +95,7 @@ public abstract class Command extends CommandBase {
                     throw new UsageException();
             }
         } catch (UsageException ue) {
-            ChatHandler.sendMessage(sender, "Unknow command " + getFullId().replace(".", " ") + " " + args[0]);
+            ChatHandler.chatError(sender, "Unknow command " + getFullId().replace(".", " ") + " " + args[0]);
             ChatHandler.sendMessage(sender, getCommandUsage(sender));
             return;
         }
@@ -158,7 +158,7 @@ public abstract class Command extends CommandBase {
         return null;
     }
 
-    public boolean onlyPlayer() {
+    public boolean isPlayerOnly() {
         return false;
     }
 

@@ -38,7 +38,7 @@ public class CreateCommand extends SubCommand {
         }
 
         if (args.length < 3) {
-            Log.error("Not enough params");
+            ChatHandler.chatError(sender, "Not enough params");
             return;
         }
 
@@ -46,7 +46,7 @@ public class CreateCommand extends SubCommand {
         Optional<UUID> uuid = AurionWorld.getPlayerUuid(name);
 
         if (!uuid.isPresent()) {
-            ChatHandler.sendMessage(sender, "Wooow, player " + name + " doesn't exist!");
+            ChatHandler.chatError(sender, "Wooow, player " + name + " doesn't exist!");
             return;
         }
 
@@ -60,7 +60,7 @@ public class CreateCommand extends SubCommand {
         AWorld world = new AWorld(name, ownerUuid, provider, worldType, seed, generator, structures);
         try {
             AurionWorld.getWorldManager().addWorld(world);
-            ChatHandler.sendMessage(sender, "World " + world.getName() + " has been created succesfully!");
+            ChatHandler.chatConfirmation(sender, "World " + world.getName() + " has been created succesfully!");
         } catch (AWorldException e) {
             e.printStackTrace();
         }

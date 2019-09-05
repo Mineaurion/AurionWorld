@@ -68,7 +68,7 @@ public class AWorld {
         this.ownerUuid = UUID.fromString((String)model.get("owner_uuid"));
         this.provider = (String) model.get("provider");
         this.worldType = (String) model.get("type");
-        this.seed = (long) model.get("seed");
+        this.seed = Long.parseLong((String)model.get("seed"));
         this.generator = (String) model.get("generator");
         this.structures = (Integer) model.get("structures") == 1;
         this.worldLoadIt = (Integer) model.get("load_it") == 1;

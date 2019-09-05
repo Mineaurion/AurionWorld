@@ -16,7 +16,7 @@ public class TeleportCommand extends SubCommand {
     }
 
     @Override
-    public boolean onlyPlayer() {
+    public boolean isPlayerOnly() {
         return true;
     }
 
@@ -25,14 +25,14 @@ public class TeleportCommand extends SubCommand {
         ChatHandler.sendMessage(sender, args[0]);
         Optional<AWorld> world = AurionWorld.getWorldManager().getWorld(args[0]);
         if (!world.isPresent()) {
-            ChatHandler.sendMessage(sender, "This world doesn't exist!");
+            ChatHandler.chatError(sender, "This world doesn't exist!");
             return;
         }
         if (!world.get().isLoaded()) {
-            ChatHandler.sendMessage(sender, "This world isn't loaded!!");
+            ChatHandler.chatError(sender, "This world isn't loaded!!");
             return;
         }
         world.get().teleport((EntityPlayerMP) sender, true);
-        ChatHandler.sendMessage(sender, "You have been teleported to the world " + world.get().getName());
+        ChatHandler.chatConfirmation(sender, "You have been teleported to the world " + world.get().getName());
     }
 }

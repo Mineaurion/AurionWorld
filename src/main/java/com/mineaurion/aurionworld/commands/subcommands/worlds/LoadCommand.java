@@ -23,23 +23,23 @@ public class LoadCommand extends SubCommand {
 
         Optional<AWorld> world = AurionWorld.getWorldManager().getWorld(args[0]);
         if (!world.isPresent()) {
-            ChatHandler.sendMessage(sender, "This world doesn't exist!");
+            ChatHandler.chatError(sender, "This world doesn't exist!");
             return;
         }
         if (!AurionWorld.isOp(sender)) {
-            ChatHandler.sendMessage(sender, "You are not allowed to do that!");
+            ChatHandler.chatError(sender, "You are not allowed to do that!");
             return;
         }
         if (world.get().isLoaded()) {
-            ChatHandler.sendMessage(sender, "This world is already loaded!");
+            ChatHandler.chatError(sender, "This world is already loaded!");
             return;
         }
 
         AurionWorld.getWorldManager().loadWorld(world.get(), false);
 
         if (world.get().isLoaded())
-            ChatHandler.sendMessage(sender, "World " + world.get().getName() + " start loading");
+            ChatHandler.chatConfirmation(sender, "World " + world.get().getName() + " start loading");
         else
-            ChatHandler.sendMessage(sender, "World " + world.get().getName() + " can't be loaded");
+            ChatHandler.chatError(sender, "World " + world.get().getName() + " can't be loaded");
     }
 }

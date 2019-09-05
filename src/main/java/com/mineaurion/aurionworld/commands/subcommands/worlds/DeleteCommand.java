@@ -23,15 +23,15 @@ public class DeleteCommand extends SubCommand {
 
         Optional<AWorld> world = AurionWorld.getWorldManager().getWorld(args[0]);
         if (!world.isPresent()) {
-            ChatHandler.sendMessage(sender, "This world doesn't exist!");
+            ChatHandler.chatError(sender, "This world doesn't exist!");
             return;
         }
         if (!AurionWorld.isOp(sender)) {
-            ChatHandler.sendMessage(sender, "You are not allowed to do that!");
+            ChatHandler.chatError(sender, "You are not allowed to do that!");
             return;
         }
         String name = world.get().getName();
         AurionWorld.getWorldManager().deleteWorld(world.get());
-        ChatHandler.sendMessage(sender, "World " + name + " has been succesfully deleted!");
+        ChatHandler.chatConfirmation(sender, "World " + name + " has been succesfully deleted!");
     }
 }

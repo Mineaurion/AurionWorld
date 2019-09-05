@@ -18,7 +18,7 @@ public class SetSpawnCommand extends SubCommand {
     }
 
     @Override
-    public boolean onlyPlayer() {
+    public boolean isPlayerOnly() {
         return true;
     }
 
@@ -37,7 +37,7 @@ public class SetSpawnCommand extends SubCommand {
             return;
 
         if (!currentWorld.get().canDoOwnerAction(sender, true)) {
-            ChatHandler.sendMessage(sender, "You are not allowed to do that!");
+            ChatHandler.chatError(sender, "You are not allowed to do that!");
             return;
         }
 
@@ -49,6 +49,6 @@ public class SetSpawnCommand extends SubCommand {
         );
 
         currentWorld.get().save();
-        ChatHandler.sendMessage(sender, "Your world spawn is now here!");
+        ChatHandler.chatConfirmation(sender, "Your world spawn is now here!");
     }
 }

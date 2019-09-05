@@ -14,6 +14,6 @@ public class ReloadCommand extends SubCommand {
     @Override
     public void process(ICommandSender sender, String[] args) {
         AurionWorld.reload();
-        ChatHandler.sendMessage(sender, "Plugin AurionWorld has been reloaded!");
+        ChatHandler.chatNotification(sender, "Plugin AurionWorld has been reloaded!");
     }
 }
