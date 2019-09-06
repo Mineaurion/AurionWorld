@@ -4,6 +4,7 @@ import com.mineaurion.aurionworld.AurionWorld;
 import com.mineaurion.aurionworld.core.commands.ACommand;
 import com.mineaurion.aurionworld.core.commands.ACommandException;
 import com.mineaurion.aurionworld.core.commands.ACommandSub;
+import com.mineaurion.aurionworld.core.commands.AUsageException;
 import com.mineaurion.aurionworld.core.misc.WorldUtil;
 import com.mineaurion.aurionworld.core.misc.output.ChatHandler;
 import com.mineaurion.aurionworld.world.AWorld;
@@ -27,9 +28,9 @@ public class OptionCommand extends ACommandSub {
     @Override
     public void process(ICommandSender sender, String[] args) {
         if (args.length < 2)
-            throw new ACommandException("Not enough params");
+            throw new AUsageException(AUsageException.NOT_ENOUGH);
         if (args.length > 3)
-            throw new ACommandException("Too many params");
+            throw new AUsageException(AUsageException.TOO_MANY);
 
         Optional<AWorld> world;
         String rule;
@@ -54,17 +55,17 @@ public class OptionCommand extends ACommandSub {
         if (!world.isPresent())
             throw new ACommandException(
                     (args.length == 2)
-                            ? "Not allowed to do this in this world!"
-                            : "This world doesn't exist"
+                            ? ACommandException.NOT_ALLOWED
+                            : ACommandException.WORLD_NOT_EXIST
             );
 
         if (!world.get().canDoOwnerAction(sender, beInside))
-            throw new ACommandException("Not allowed to do this in this world!");
+            throw new ACommandException(ACommandException.NOT_ALLOWED);
 
         GameRules rules = world.get().getWorldServer().getGameRules();
         addTabCompletionOptions(sender, rules.getRules());
         if (!rules.hasRule(rule))
-            throw new ACommandException("Rule " + rule + " doesn't exist!");
+            throw new ACommandException(String.format(ACommandException.RULE_NOT_EXIST, rule));
 
 
         rules.setOrCreateGameRule(rule, value);

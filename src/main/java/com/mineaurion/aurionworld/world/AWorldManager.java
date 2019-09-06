@@ -93,17 +93,7 @@ public class AWorldManager {
                 if (world.worldLoadIt)
                     loadWorld(world, false);
             } catch (AWorldException e) {
-                switch (e.type) {
-                    case NO_PROVIDER:
-                        Log.error(String.format(e.type.error, world.provider));
-                        break;
-                    case NO_WORLDTYPE:
-                        Log.error(String.format(e.type.error, world.worldType));
-                        break;
-                    default:
-                        Log.error(e.type.error);
-                        break;
-                }
+                Log.error(e.getMessage());
             }
         }
     }
@@ -165,7 +155,7 @@ public class AWorldManager {
             MinecraftServer mcServer = MinecraftServer.getServer();
             WorldServer overworld = DimensionManager.getWorld(0);
             if (overworld == null)
-                throw new RuntimeException("Cannot hotload dim: Overworld is not Loaded!");
+                throw new AWorldException("Cannot hotload dim: Overworld is not Loaded!");
             ISaveHandler savehandler = new AWorldSaveHandler(overworld.getSaveHandler(), world);
             WorldSettings worldSettings = new WorldSettings(
                     world.seed,
@@ -249,7 +239,6 @@ public class AWorldManager {
         for (Iterator<WorldServer> it = worldsToDelete.iterator(); it.hasNext(); ) {
             WorldServer world = it.next();
             // Check with DimensionManager, whether the world is still loaded
-            Log.info("WOOORLD " + world.provider.dimensionId);
             if (DimensionManager.getWorld(world.provider.dimensionId) == null) {
                 try {
                     if (DimensionManager.isDimensionRegistered(world.provider.dimensionId))
@@ -318,7 +307,7 @@ public class AWorldManager {
             default:
                 Integer providerId = worldProviderClasses.get(providerName);
                 if (providerId == null)
-                    throw new AWorldException(AWorldException.Type.NO_PROVIDER);
+                    throw new AWorldException(String.format(AWorldException.NO_PROVIDER, providerName));
                 return providerId;
         }
     }
@@ -333,7 +322,7 @@ public class AWorldManager {
     public WorldType getWorldTypeByName(String worldType) throws AWorldException {
         WorldType type = worldTypes.get(worldType.toUpperCase());
         if (type == null)
-            throw new AWorldException(AWorldException.Type.NO_WORLDTYPE);
+            throw new AWorldException(String.format(AWorldException.NO_WORLDTYPE, worldType));
         return type;
     }
 

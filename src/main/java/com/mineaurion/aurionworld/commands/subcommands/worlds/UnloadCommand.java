@@ -17,16 +17,12 @@ public class UnloadCommand extends ACommandSub {
 
     @Override
     public void process(ICommandSender sender, String[] args) {
-        if (args.length != 1) {
-            return;
-        }
-
         Optional<AWorld> world = AurionWorld.getWorldManager().getWorld(args[0]);
         if (!world.isPresent())
-            throw new ACommandException("This world doesn't exist!");
+            throw new ACommandException(ACommandException.WORLD_NOT_EXIST);
 
         if (!world.get().isLoaded())
-            throw new ACommandException("This world is already unloaded!");
+            throw new ACommandException(ACommandException.WORLD_IS_LOADED);
 
         AurionWorld.getWorldManager().unloadWorld(world.get(), false);
         ChatHandler.chatConfirmation(sender, "World " + world.get().getName() + " has been sucessfully unloaded!");

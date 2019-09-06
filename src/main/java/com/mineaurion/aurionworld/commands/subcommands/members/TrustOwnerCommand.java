@@ -23,7 +23,7 @@ public class TrustOwnerCommand extends ACommandTrust {
         Optional<AWorldMember> member = world.getMember(targetUuid);
         if (member.isPresent()) {
             if (member.get().getLevel() == AWorldMember.TRUST_OWNER)
-                throw new ACommandException(targetName + " is already trust as owner member");
+                throw new ACommandException(String.format(ACommandException.PLAYER_IS_ALREADY_OWNER, targetName));
 
             member.get().setLevel(AWorldMember.TRUST_OWNER);
             member.get().save();

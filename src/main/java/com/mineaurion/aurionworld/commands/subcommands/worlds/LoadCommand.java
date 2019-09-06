@@ -4,6 +4,7 @@ import com.mineaurion.aurionworld.AurionWorld;
 import com.mineaurion.aurionworld.core.commands.ACommand;
 import com.mineaurion.aurionworld.core.commands.ACommandException;
 import com.mineaurion.aurionworld.core.commands.ACommandSub;
+import com.mineaurion.aurionworld.core.commands.AUsageException;
 import com.mineaurion.aurionworld.core.misc.output.ChatHandler;
 import com.mineaurion.aurionworld.world.AWorld;
 import net.minecraft.command.ICommandSender;
@@ -17,22 +18,21 @@ public class LoadCommand extends ACommandSub {
 
     @Override
     public void process(ICommandSender sender, String[] args) {
-        if (args.length != 1) {
-            return;
-        }
+        if (args.length != 1)
+            throw new AUsageException();
 
         Optional<AWorld> world = AurionWorld.getWorldManager().getWorld(args[0]);
         if (!world.isPresent())
-            throw new ACommandException("This world doesn't exist!");
+            throw new ACommandException(ACommandException.WORLD_NOT_EXIST);
 
         if (world.get().isLoaded())
-            throw new ACommandException("This world is already loaded!");
+            throw new ACommandException(ACommandException.WORLD_IS_LOADED);
 
         AurionWorld.getWorldManager().loadWorld(world.get(), false);
 
         if (world.get().isLoaded())
             ChatHandler.chatConfirmation(sender, "World " + world.get().getName() + " start loading");
         else
-            throw new ACommandException("World " + world.get().getName() + " can't be loaded");
+            throw new ACommandException(String.format(ACommandException.WORLD_CANT_BE_LOADED, world.get().getName()));
     }
 }

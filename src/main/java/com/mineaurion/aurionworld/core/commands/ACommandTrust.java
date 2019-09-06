@@ -50,36 +50,36 @@ public class ACommandTrust extends ACommandSub {
             targetName = args[1];
             beInside = false;
         } else {
-            throw new AUsageException((args.length > 2) ? "Too many params" : "Not enough params");
+            throw new AUsageException((args.length > 2) ? AUsageException.TOO_MANY : AUsageException.NOT_ENOUGH);
         }
 
         // Check if AWorld not exist
         if (!givenWorld.isPresent())
             throw new ACommandException(
                     (args.length == 2)
-                            ? "Not allowed to do this in this world!"
-                            : "This world doesn't exist"
+                            ? ACommandException.NOT_ALLOWED
+                            : ACommandException.WORLD_NOT_EXIST
             );
 
         world = givenWorld.get();
         // Check if sender respect condition to execute the command
         if (!world.canDoOwnerAction(sender, beInside))
-            throw new ACommandException("Not allowed to do this in this world!");
+            throw new ACommandException(ACommandException.NOT_ALLOWED);
 
         Optional<UUID> givenTargetUuid = AurionWorld.getPlayerUuid(targetName);
         // Check if target exist
         if (!givenTargetUuid.isPresent())
-            throw new ACommandException("This player doesn't exist!");
+            throw new ACommandException(String.format(ACommandException.PLAYER_NOT_EXIST, targetName));
 
         targetUuid = givenTargetUuid.get();
 
         // Check if target is not the creator
         if (world.isUniqueOwner(targetUuid))
-            throw new ACommandException("This player is the creator, you can't manage him");
+            throw new ACommandException(String.format(ACommandException.PLAYER_IS_CREATE, targetName));
 
         // Check if sender try to manage him self..
         if (senderUuid.equals(targetUuid))
-            throw new ACommandException("You can't manage yourself");
+            throw new ACommandException(ACommandException.PLAYER_CANT_MANAGE_HIMSELF);
 
         return true;
     }

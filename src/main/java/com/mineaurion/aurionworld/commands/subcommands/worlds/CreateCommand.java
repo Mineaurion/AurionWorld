@@ -38,22 +38,17 @@ public class CreateCommand extends ACommandSub {
             throw new AUsageException();
         }
 
-        if (args.length < 3) {
-            ChatHandler.chatError(sender, "Not enough params");
-            throw new AUsageException();
-        }
+        if (args.length < 3)
+            throw new AUsageException(AUsageException.NOT_ENOUGH);
 
-        if (args.length > 6) {
-            ChatHandler.chatError(sender, "Too many params");
-            throw new AUsageException();
-        }
+        if (args.length > 6)
+            throw new AUsageException(AUsageException.TOO_MANY);
 
         String name = args[0];
         Optional<UUID> uuid = AurionWorld.getPlayerUuid(name);
 
         if (!uuid.isPresent()) {
-            ChatHandler.chatError(sender, "Wooow, player " + name + " doesn't exist!");
-            return;
+            throw new ACommandException(String.format(ACommandException.PLAYER_NOT_EXIST, name));
         }
 
         UUID ownerUuid = uuid.get();
@@ -64,11 +59,8 @@ public class CreateCommand extends ACommandSub {
         boolean structures = (args.length >= 6) && Boolean.parseBoolean(args[5]);
 
         AWorld world = new AWorld(name, ownerUuid, provider, worldType, seed, generator, structures);
-        try {
-            AurionWorld.getWorldManager().addWorld(world);
-            ChatHandler.chatConfirmation(sender, "World " + world.getName() + " has been created succesfully!");
-        } catch (AWorldException e) {
-            throw new ACommandException(e.getMessage());
-        }
+
+        AurionWorld.getWorldManager().addWorld(world);
+        ChatHandler.chatConfirmation(sender, "World " + world.getName() + " has been created succesfully!");
     }
 }

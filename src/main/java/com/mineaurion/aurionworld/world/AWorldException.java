@@ -1,29 +1,28 @@
 package com.mineaurion.aurionworld.world;
 
-public class AWorldException extends Exception
+public class AWorldException extends RuntimeException
 {
-    private static final long serialVersionUID = 1L;
+    public final static String NO_PROVIDER = "%s is no provider by that name";
+    public final static String NO_WORLDTYPE = "%s is no worlds type by that name";
 
-    public static enum Type
-    {
-        ALREADY_EXISTS("A worlds with that name already exists"),
-        NO_PROVIDER("There is no provider by that name"),
-        NO_WORLDTYPE("There is no worlds type by that name");
-
-        public String error;
-
-        private Type(String error)
-        {
-            this.error = error;
-        }
+    public AWorldException() {
+        super();
     }
 
-    public Type type;
+    public AWorldException(String message) {
+        super(message);
+    }
 
-    protected AWorldException(Type type)
-    {
-        this.type = type;
+    public AWorldException(String message, Throwable cause) {
+        super(message, cause);
+    }
 
+    public AWorldException(Throwable cause) {
+        super(cause);
+    }
+
+    protected AWorldException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
+        super(message, cause, enableSuppression, writableStackTrace);
     }
 }
 

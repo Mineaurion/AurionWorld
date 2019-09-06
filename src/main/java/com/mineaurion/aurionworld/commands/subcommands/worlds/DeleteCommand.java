@@ -18,17 +18,16 @@ public class DeleteCommand extends ACommandSub {
 
     @Override
     public void process(ICommandSender sender, String[] args) {
-        if (args.length != 1) {
+        if (args.length != 1)
             throw new AUsageException();
-        }
 
         Optional<AWorld> world = AurionWorld.getWorldManager().getWorld(args[0]);
         // World doesn't exist
         if (!world.isPresent())
-            throw new ACommandException("This world doesn't exist!");
+            throw new ACommandException(ACommandException.WORLD_NOT_EXIST);
         // Not allowed
         if (!AurionWorld.isOp(sender))
-            throw new ACommandException("You are not allowed to do that!");
+            throw new ACommandException(ACommandException.NOT_ALLOWED);
 
         String name = world.get().getName();
         AurionWorld.getWorldManager().deleteWorld(world.get());

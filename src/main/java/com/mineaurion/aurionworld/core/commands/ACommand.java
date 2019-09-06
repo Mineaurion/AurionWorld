@@ -3,6 +3,7 @@ package com.mineaurion.aurionworld.core.commands;
 import com.mineaurion.aurionworld.core.misc.output.ChatHandler;
 import com.mineaurion.aurionworld.core.misc.output.Log;
 import com.mineaurion.aurionworld.AurionWorld;
+import com.mineaurion.aurionworld.world.AWorldException;
 import net.minecraft.command.CommandBase;
 import net.minecraft.command.ICommandSender;
 import net.minecraftforge.common.config.Configuration;
@@ -92,11 +93,14 @@ public abstract class ACommand extends CommandBase {
                     return;
                 }
                 else
-                    throw new AUsageException("Unknow command. Try /aw help for list of commands");
+                    throw new AUsageException(AUsageException.UNKNOW);
             }
         } catch (AUsageException ue) {
             ChatHandler.chatError(sender, ue.getMessage());
             ChatHandler.sendMessage(sender, getCommandUsage(sender));
+            return;
+        } catch (ACommandException | AWorldException ex ) {
+            ChatHandler.chatError(sender, ex.getMessage());
             return;
         }
         process(sender, args);

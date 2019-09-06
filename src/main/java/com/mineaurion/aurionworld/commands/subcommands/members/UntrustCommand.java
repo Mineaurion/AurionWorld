@@ -1,6 +1,7 @@
 package com.mineaurion.aurionworld.commands.subcommands.members;
 
 import com.mineaurion.aurionworld.core.commands.ACommand;
+import com.mineaurion.aurionworld.core.commands.ACommandException;
 import com.mineaurion.aurionworld.core.commands.ACommandTrust;
 import com.mineaurion.aurionworld.core.misc.output.ChatHandler;
 import com.mineaurion.aurionworld.world.AWorldMember;
@@ -22,10 +23,10 @@ public class UntrustCommand extends ACommandTrust {
         Optional<AWorldMember> member = world.getMember(targetUuid);
         if (member.isPresent()) {
             world.removeMember(targetUuid);
-        } else {
-            ChatHandler.chatError(sender, "This user isn't attached to " + world.getName() + " world!");
-            return;
-        }
+        } else
+            throw new ACommandException(String.format(ACommandException.PLAYER_NOT_MEMBER,  world.getName()));
+
+
         ChatHandler.chatConfirmation(sender, targetName + " is no longer trusted on  " + world.getName() + " world!");
     }
 }

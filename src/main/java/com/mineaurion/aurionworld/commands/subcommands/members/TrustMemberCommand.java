@@ -21,7 +21,7 @@ public class TrustMemberCommand extends ACommandTrust {
         Optional<AWorldMember> member = world.getMember(targetUuid);
         if (member.isPresent()) {
             if (member.get().getLevel() == AWorldMember.TRUST_MEMBER)
-                throw new ACommandException(targetName + " is already trust as member");
+                throw new ACommandException(String.format(ACommandException.PLAYER_IS_ALREADY_MEMBER, targetName));
             member.get().setLevel(AWorldMember.TRUST_MEMBER);
             member.get().save();
         } else {
