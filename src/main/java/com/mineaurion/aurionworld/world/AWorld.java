@@ -9,40 +9,37 @@ import com.mineaurion.aurionworld.core.misc.teleporter.TeleportHelper;
 import com.mineaurion.aurionworld.core.models.WorldMemberModel;
 import com.mineaurion.aurionworld.core.models.WorldModel;
 import net.minecraft.command.ICommandSender;
-import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.WorldServer;
 import net.minecraft.world.WorldType;
 
-import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 public class AWorld {
     public WorldModel model;
 
-    public static int LEVEL_MEMBER = 1;
-    public static int LEVEL_MEMBER_OWNER = 2;
 
     // Model Attributes
     protected int id;
+
     protected String name;
     protected int dimensionId;
     protected UUID ownerUuid;
     protected String worldType;
     protected String provider;
+    protected boolean isNew = false;
 
-    public boolean isStructures() {
-        return structures;
-    }
 
     protected long seed;
     protected String generator;
     protected boolean structures;
     protected boolean worldLoadIt;
     protected WorldPoint spawnPoint = null;
-    protected ArrayList<WorldMemberModel> members = new ArrayList<>();
-
+    protected HashMap<UUID, AWorldMember> members;
 
     // Helper
     protected boolean worldLoaded = false;
@@ -53,6 +50,7 @@ public class AWorld {
 
     public AWorld(String name, UUID ownerUuid, String provider, String worldType, long seed, String generator, boolean structures) {
         this.model = new WorldModel();
+        isNew = true;
 
         this.name = name;
         this.ownerUuid = ownerUuid;
@@ -61,39 +59,49 @@ public class AWorld {
         this.seed = seed;
         this.generator = generator;
         this.structures = structures;
-        this.worldLoadIt = true;
+        worldLoadIt = true;
     }
 
     public AWorld(WorldModel model) {
         this.model = model;
+        isNew = false;
 
-        this.id = (Integer) model.get("id");
-        this.dimensionId = (Integer) model.get("dimension_id");
-        this.name = (String) model.get("name");
-        this.ownerUuid = UUID.fromString((String)model.get("owner_uuid"));
-        this.provider = (String) model.get("provider");
-        this.worldType = (String) model.get("type");
-        this.seed = Long.parseLong((String)model.get("seed"));
-        this.generator = (String) model.get("generator");
-        this.structures = (Integer) model.get("structures") == 1;
-        this.worldLoadIt = (Integer) model.get("load_it") == 1;
+        id = (Integer) model.get("id");
+        dimensionId = (Integer) model.get("dimension_id");
+        name = (String) model.get("name");
+        ownerUuid = UUID.fromString((String) model.get("owner_uuid"));
+        provider = (String) model.get("provider");
+        worldType = (String) model.get("type");
+        seed = Long.parseLong((String) model.get("seed"));
+        generator = (String) model.get("generator");
+        structures = (Integer) model.get("structures") == 1;
+        worldLoadIt = (Integer) model.get("load_it") == 1;
+    }
+
+    protected HashMap<String, AWorldMember> loadWorldMembersFromDb() {
+        List<WorldMemberModel> worldMembersModel = WorldMemberModel.findAll();
+        HashMap<String, AWorldMember> results = new HashMap<>();
+        for (WorldMemberModel wmm : worldMembersModel) {
+            results.put(wmm.getString("name"), new AWorldMember(wmm));
+        }
+        return results;
     }
 
     public void setSpawn(int x, int y, int z) {
-        this.spawnPoint = new WorldPoint(getWorldServer(), x, y, z);
+        spawnPoint = new WorldPoint(getWorldServer(), x, y, z);
         getWorldServer().setSpawnLocation(
-            spawnPoint.getX(),
-            spawnPoint.getY(),
-            spawnPoint.getZ()
+                spawnPoint.getX(),
+                spawnPoint.getY(),
+                spawnPoint.getZ()
         );
     }
 
     public void setSpawn() {
-        this.spawnPoint = new WorldPoint(
+        spawnPoint = new WorldPoint(
                 getWorldServer(),
-                (Integer)model.get("spawn_x"),
-                (Integer)model.get("spawn_y"),
-                (Integer)model.get("spawn_z")
+                (Integer) model.get("spawn_x"),
+                (Integer) model.get("spawn_y"),
+                (Integer) model.get("spawn_z")
         );
         getWorldServer().setSpawnLocation(
                 spawnPoint.getX(),
@@ -104,25 +112,25 @@ public class AWorld {
 
     public void save() {
         // Set all Attribute Model
-        this.model.set("name", name);
-        this.model.set("dimension_id", dimensionId);
-        this.model.set("owner_uuid", ownerUuid.toString());
-        this.model.set("type", worldType);
-        this.model.set("provider", provider);
-        this.model.set("seed", seed);
-        this.model.set("generator", generator);
-        this.model.set("structures", (structures) ? 1 : 0);
-        this.model.set("load_it", (worldLoadIt) ? 1 : 0);
-        this.model.set("spawn_x", spawnPoint.getX());
-        this.model.set("spawn_y", spawnPoint.getY());
-        this.model.set("spawn_z", spawnPoint.getZ());
+        model.set("name", name);
+        model.set("dimension_id", dimensionId);
+        model.set("owner_uuid", ownerUuid.toString());
+        model.set("type", worldType);
+        model.set("provider", provider);
+        model.set("seed", seed);
+        model.set("generator", generator);
+        model.set("structures", (structures) ? 1 : 0);
+        model.set("load_it", (worldLoadIt));
+        model.set("spawn_x", spawnPoint.getX());
+        model.set("spawn_y", spawnPoint.getY());
+        model.set("spawn_z", spawnPoint.getZ());
         // Database save
-        this.model.save();
+        model.save();
         Log.info("Save world " + name + " (" + dimensionId + ") in database");
     }
 
     public void delete() {
-        this.model.delete();
+        model.delete();
         Log.info("World " + name + " has been deleted!");
     }
 
@@ -140,6 +148,10 @@ public class AWorld {
         }
     }
 
+    public boolean isStructures() {
+        return structures;
+    }
+
     // ============================================================
     // Teleporter Management
 
@@ -153,8 +165,6 @@ public class AWorld {
 
     public static void teleport(EntityPlayerMP player, WorldServer world, double x, double y, double z, boolean instant) {
         boolean worldChange = player.worldObj.provider.dimensionId != world.provider.dimensionId;
-        if (worldChange)
-            displayDepartMessage(player);
 
         y = WorldUtil.placeInWorld(world, (int) x, (int) y, (int) z);
         WarpPoint target = new WarpPoint(world.provider.dimensionId, x, y, z, player.rotationPitch, player.rotationYaw);
@@ -162,42 +172,53 @@ public class AWorld {
             TeleportHelper.checkedTeleport(player, target);
         else
             TeleportHelper.teleport(player, target);
-
-        if (worldChange)
-            displayWelcomeMessage(player);
-    }
-
-    public static void displayDepartMessage(EntityPlayerMP player) {
-        // String msg = player.worldObj.provider.getDepartMessage();
-        // if (msg == null)
-        // msg = "Leaving the Overworld.";
-        // if (player.dimension > 1 || player.dimension < -1)
-        // msg += " (#" + player.dimension + ")";
-        // ChatOutputHandler.sendMessage(player, new ChatComponentText(msg));
-    }
-
-    public static void displayWelcomeMessage(EntityPlayerMP player) {
-        // String msg = player.worldObj.provider.getWelcomeMessage();
-        // if (msg == null)
-        // msg = "Entering the Overworld.";
-        // if (player.dimension > 1 || player.dimension < -1)
-        // msg += " (#" + player.dimension + ")";
-        // ChatOutputHandler.sendMessage(player, new ChatComponentText(msg));
     }
 
     // ============================================================
-    // Member Management
-    public boolean isOwner(UUID uuid) {
-        return true;
+    // Trust Management
+
+
+    public boolean isUniqueOwner(UUID uuid) {
+        return (uuid).equals(ownerUuid);
     }
 
     public boolean isMember(UUID uuid) {
-        return true;
+        return members.containsKey(uuid) || isUniqueOwner(uuid);
     }
 
-    public boolean isUniqueOwner(UUID uuid) {
-        return (uuid).equals(this.ownerUuid);
+    public boolean isMemberOwner(UUID uuid) {
+        AWorldMember member = members.get(uuid);
+        if (member == null) {
+            return isUniqueOwner(uuid);
+        }
+
+        return (member.getLevel() == AWorldMember.TRUST_OWNER);
     }
+
+    public void addMember(UUID uuid, int level) {
+        WorldMemberModel wmm = new WorldMemberModel();
+        wmm.set("world_id", id);
+        wmm.set("uuid", uuid);
+        wmm.set("level", level);
+        wmm.save();
+
+        AWorldMember member = new AWorldMember(wmm);
+        members.put(uuid, member);
+    }
+
+    public void removeMember(UUID uuid) {
+        AWorldMember wmm = members.get(uuid);
+        if (wmm != null) {
+            wmm.delete();
+            members.remove(uuid);
+        }
+    }
+
+    private void clearMembers() {
+        members.forEach((uuid, member) -> member.delete());
+        members.clear();
+    }
+
 
     // ============================================================
     // Permission Actions Management
@@ -207,7 +228,7 @@ public class AWorld {
         if (!AurionWorld.isPlayer(sender))
             return false;
 
-        EntityPlayerMP player = (EntityPlayerMP)sender;
+        EntityPlayerMP player = (EntityPlayerMP) sender;
         if (AurionWorld.isOp(sender))
             return true;
 
@@ -219,16 +240,17 @@ public class AWorld {
             return true;
         if (!AurionWorld.isPlayer(sender))
             return false;
-        EntityPlayerMP player = (EntityPlayerMP)sender;
-        if (beInside && isInside(player))
-        if (AurionWorld.isOp(sender))
-            return true;
 
-        return isOwner(player.getUniqueID());
+        EntityPlayerMP player = (EntityPlayerMP) sender;
+        if (beInside && isInside(player))
+            if (AurionWorld.isOp(sender))
+                return true;
+
+        return isMemberOwner(player.getUniqueID());
     }
 
     public boolean isInside(EntityPlayerMP player) {
-        return player.dimension == this.dimensionId;
+        return player.dimension == dimensionId;
     }
 
 
@@ -275,4 +297,16 @@ public class AWorld {
         return worldLoadIt;
     }
 
+    public HashMap<UUID, AWorldMember> getMembers() {
+        return members;
+    }
+
+    public Optional<AWorldMember> getMember(UUID uuid) {
+        AWorldMember member = members.get(uuid);
+        return Optional.ofNullable(member);
+    }
+
+    public int getId() {
+        return id;
+    }
 }

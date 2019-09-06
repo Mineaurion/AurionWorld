@@ -2,9 +2,9 @@ package com.mineaurion.aurionworld.core.commands;
 
 import net.minecraft.command.ICommandSender;
 
-public abstract class SubCommand extends Command {
+public abstract class ACommandSub extends ACommand {
 
-    public SubCommand(String id, Command parent) {
+    public ACommandSub(String id, ACommand parent) {
         super(id, parent);
     }
 

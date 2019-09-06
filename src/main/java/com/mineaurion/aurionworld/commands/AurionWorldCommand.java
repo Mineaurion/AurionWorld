@@ -1,25 +1,24 @@
 package com.mineaurion.aurionworld.commands;
 
-import com.mineaurion.aurionworld.commands.subcommands.members.AddMemberCommand;
-import com.mineaurion.aurionworld.commands.subcommands.members.AddOwnerCommand;
-import com.mineaurion.aurionworld.commands.subcommands.members.RemoveMemberCommand;
-import com.mineaurion.aurionworld.commands.subcommands.members.RemoveOwnerCommand;
+import com.mineaurion.aurionworld.commands.subcommands.members.TrustMemberCommand;
+import com.mineaurion.aurionworld.commands.subcommands.members.TrustOwnerCommand;
+import com.mineaurion.aurionworld.commands.subcommands.members.UntrustCommand;
 import com.mineaurion.aurionworld.commands.subcommands.utils.HelpCommand;
 import com.mineaurion.aurionworld.commands.subcommands.utils.InfoCommand;
 import com.mineaurion.aurionworld.commands.subcommands.utils.ReloadCommand;
 import com.mineaurion.aurionworld.commands.subcommands.worlds.*;
-import com.mineaurion.aurionworld.core.commands.Command;
+import com.mineaurion.aurionworld.core.commands.ACommand;
 import net.minecraft.command.ICommandSender;
 
-public class AurionWorldCommand extends Command {
+public class AurionWorldCommand extends ACommand {
 
     public AurionWorldCommand(String id) {
         super(id);
+
         // members
-        setSubCommand(new AddMemberCommand("addmember", this));
-        setSubCommand(new AddOwnerCommand("addowner", this));
-        setSubCommand(new RemoveMemberCommand("removemember", this));
-        setSubCommand(new RemoveOwnerCommand("removeowner", this));
+        setSubCommand(new TrustMemberCommand("trustmember", this));
+        setSubCommand(new TrustOwnerCommand("trustowner", this));
+        setSubCommand(new UntrustCommand("untrust", this));
         // utils
         setSubCommand(new HelpCommand("help", this));
         setSubCommand(new InfoCommand("info", this));
@@ -38,6 +37,4 @@ public class AurionWorldCommand extends Command {
     public void process(ICommandSender commandSender, String[] args) {
         getSubCommandById("help").execute(commandSender, args);
     }
-
-
 }

@@ -1,8 +1,8 @@
 package com.mineaurion.aurionworld.commands.subcommands.worlds;
 
-import com.mineaurion.aurionworld.AurionWorld;
-import com.mineaurion.aurionworld.core.commands.Command;
-import com.mineaurion.aurionworld.core.commands.SubCommand;
+import com.mineaurion.aurionworld.core.commands.ACommand;
+import com.mineaurion.aurionworld.core.commands.ACommandException;
+import com.mineaurion.aurionworld.core.commands.ACommandSub;
 import com.mineaurion.aurionworld.core.misc.WorldUtil;
 import com.mineaurion.aurionworld.core.misc.output.ChatHandler;
 import com.mineaurion.aurionworld.world.AWorld;
@@ -12,8 +12,8 @@ import net.minecraft.entity.player.EntityPlayerMP;
 
 import java.util.Optional;
 
-public class SetSpawnCommand extends SubCommand {
-    public SetSpawnCommand(String id, Command parent) {
+public class SetSpawnCommand extends ACommandSub {
+    public SetSpawnCommand(String id, ACommand parent) {
         super(id, parent);
     }
 
@@ -36,10 +36,8 @@ public class SetSpawnCommand extends SubCommand {
         if (!currentWorld.isPresent())
             return;
 
-        if (!currentWorld.get().canDoOwnerAction(sender, true)) {
-            ChatHandler.chatError(sender, "You are not allowed to do that!");
-            return;
-        }
+        if (!currentWorld.get().canDoOwnerAction(sender, true))
+            throw new ACommandException("You are not allowed to do that!");
 
         int dimId = ((EntityPlayer)sender).dimension;
         currentWorld.get().setSpawn(

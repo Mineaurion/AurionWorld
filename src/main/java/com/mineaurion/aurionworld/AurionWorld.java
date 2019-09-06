@@ -1,13 +1,13 @@
 package com.mineaurion.aurionworld;
 
+import com.mineaurion.aurionworld.core.misc.output.ChatHandler;
 import com.mineaurion.aurionworld.core.misc.output.Log;
-import com.mineaurion.aurionworld.core.commands.Command;
-import com.mineaurion.aurionworld.core.commands.CommandManager;
+import com.mineaurion.aurionworld.core.commands.ACommand;
+import com.mineaurion.aurionworld.core.commands.ACommandManager;
 //import com.mineaurion.aurionworld.core.database.Mysql;
 import com.mineaurion.aurionworld.commands.AurionWorldCommand;
 import com.mineaurion.aurionworld.core.database.Mysql;
 import com.mineaurion.aurionworld.world.AWorldManager;
-import com.mojang.authlib.GameProfile;
 import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.Mod;
 import cpw.mods.fml.common.event.*;
@@ -18,13 +18,10 @@ import net.minecraft.command.ServerCommandManager;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.management.PlayerProfileCache;
 import net.minecraft.server.management.UserListOps;
-import net.minecraft.util.ChatComponentText;
 import net.minecraftforge.common.UsernameCache;
 import net.minecraftforge.common.config.Configuration;
 import org.javalite.activejdbc.Base;
-import scala.tools.ant.sabbus.Use;
 //import org.javalite.activejdbc.Base;
 
 import java.io.*;
@@ -44,7 +41,7 @@ public class AurionWorld {
      * Plugin attributes
      */
     private static Configuration _configuration;
-    private static CommandManager _commandManager;
+    private static ACommandManager _commandManager;
 
     private static AWorldManager _worldManager;
 
@@ -59,7 +56,7 @@ public class AurionWorld {
         _configuration.load();
 
         // Cmd
-        _configuration.setCategoryComment(Command.prefix, "Commands datas");
+        _configuration.setCategoryComment(ACommand.prefix, "Commands datas");
 
         // Database
         _configuration.setCategoryComment("database", "Database credentials");
@@ -98,6 +95,10 @@ public class AurionWorld {
     @Mod.EventHandler
     public void postInit(FMLPostInitializationEvent event) {
         _worldManager = new AWorldManager();
+        ChatHandler.setConfirmationColor("GREEN");
+        ChatHandler.setErrorColor("RED");
+        ChatHandler.setNotificationColor("AQUA");
+        ChatHandler.setWarningColor("YELLOW");
         FMLCommonHandler.instance().bus().register(_worldManager);
     }
 
@@ -109,7 +110,7 @@ public class AurionWorld {
         _worldManager.loadWorldTypes();
         _worldManager.load();
 
-        _commandManager = new CommandManager((ServerCommandManager) srv.getCommandManager());
+        _commandManager = new ACommandManager((ServerCommandManager) srv.getCommandManager());
         _commandManager.registerCommand(new AurionWorldCommand("aw"));
     }
 
@@ -158,8 +159,6 @@ public class AurionWorld {
 
 
     public static Optional<String> getPlayerName(UUID uuid) {
-        if (!UsernameCache.containsUUID(uuid))
-            return Optional.empty();
         return Optional.ofNullable(UsernameCache.getLastKnownUsername(uuid));
     }
 

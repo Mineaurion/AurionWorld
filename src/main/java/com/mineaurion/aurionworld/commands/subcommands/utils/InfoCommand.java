@@ -1,20 +1,18 @@
 package com.mineaurion.aurionworld.commands.subcommands.utils;
 
 import com.mineaurion.aurionworld.AurionWorld;
-import com.mineaurion.aurionworld.core.commands.Command;
-import com.mineaurion.aurionworld.core.commands.SubCommand;
+import com.mineaurion.aurionworld.core.commands.ACommand;
+import com.mineaurion.aurionworld.core.commands.ACommandSub;
 import com.mineaurion.aurionworld.core.misc.output.ChatHandler;
 import com.mineaurion.aurionworld.world.AWorld;
 import net.minecraft.command.ICommandSender;
-import net.minecraft.util.ChatComponentStyle;
-import net.minecraft.util.ChatComponentText;
 
 import java.util.Collection;
 import java.util.Optional;
 import java.util.UUID;
 
-public class InfoCommand extends SubCommand {
-    public InfoCommand(String id, Command parent) {
+public class InfoCommand extends ACommandSub {
+    public InfoCommand(String id, ACommand parent) {
         super(id, parent);
     }
 
@@ -36,24 +34,34 @@ public class InfoCommand extends SubCommand {
         if (!playerWorlds.isEmpty()) {
             StringBuilder info = new StringBuilder(playerName + "worlds infos ("+ playerWorlds.size() +")");
             for (AWorld w : playerWorlds) {
-                info.append("\n-----------------------------");
-                info.append("\n- DimId : ");
+                info.append("\n");
+                info.append("-----------------------------");
+                info.append("\n");
+                info.append("- DimId : ");
                 info.append(w.getDimensionId());
-                info.append("\n- Name : ");
+                info.append("\n");
+                info.append("- Name : ");
                 info.append(w.getName());
-                info.append("\n- Provider : ");
+                info.append("\n");
+                info.append("- Provider : ");
                 info.append(w.getProvider());
-                info.append("\n- Type : ");
+                info.append("\n");
+                info.append("- Type : ");
                 info.append(w.getWorldType());
-                info.append("\n- Structures : ");
+                info.append("\n");
+                info.append("- Structures : ");
                 info.append(w.isStructures());
-                info.append("\n- Loaded : ");
+                info.append("\n");
+                info.append("- Loaded : ");
                 info.append(w.isLoaded());
-                info.append("\n- Load it : ");
+                info.append("\n");
+                info.append("- Load it : ");
                 info.append(w.isLoadIt());
-                info.append("\n- Seed : ");
+                info.append("\n");
+                info.append("- Seed : ");
                 info.append(w.getSeed());
-                info.append("\n- Generator : ");
+                info.append("\n");
+                info.append("- Generator : ");
                 info.append(w.getGenerator());
             }
             ChatHandler.sendMessage(sender, info.toString());

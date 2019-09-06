@@ -1,21 +1,21 @@
 package com.mineaurion.aurionworld.commands.subcommands.worlds;
 
 import com.mineaurion.aurionworld.AurionWorld;
-import com.mineaurion.aurionworld.core.commands.Command;
-import com.mineaurion.aurionworld.core.commands.SubCommand;
+import com.mineaurion.aurionworld.core.commands.ACommand;
+import com.mineaurion.aurionworld.core.commands.ACommandException;
+import com.mineaurion.aurionworld.core.commands.ACommandSub;
 import com.mineaurion.aurionworld.core.misc.WorldUtil;
 import com.mineaurion.aurionworld.core.misc.output.ChatHandler;
 import com.mineaurion.aurionworld.world.AWorld;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.world.GameRules;
-import net.minecraft.world.WorldManager;
 
 import java.util.Arrays;
 import java.util.Optional;
 
-public class OptionCommand extends SubCommand {
-    public OptionCommand(String id, Command parent) {
+public class OptionCommand extends ACommandSub {
+    public OptionCommand(String id, ACommand parent) {
         super(id, parent);
     }
 
@@ -26,14 +26,10 @@ public class OptionCommand extends SubCommand {
 
     @Override
     public void process(ICommandSender sender, String[] args) {
-        if (args.length < 2) {
-            ChatHandler.chatError(sender, "Not enough params");
-            return;
-        }
-        if (args.length > 3) {
-            ChatHandler.chatError(sender, "Too many params");
-            return;
-        }
+        if (args.length < 2)
+            throw new ACommandException("Not enough params");
+        if (args.length > 3)
+            throw new ACommandException("Too many params");
 
         Optional<AWorld> world;
         String rule;
@@ -55,25 +51,21 @@ public class OptionCommand extends SubCommand {
         }
 
         // Check if AWorld not exist
-        if (!world.isPresent()) {
-            String error_message = (args.length == 2) ? "Not allowed to do this in this world!" : "This world doesn't exist";
-            ChatHandler.chatError(sender, error_message);
-            return;
-        }
+        if (!world.isPresent())
+            throw new ACommandException(
+                    (args.length == 2)
+                            ? "Not allowed to do this in this world!"
+                            : "This world doesn't exist"
+            );
 
-        if (!world.get().canDoOwnerAction(sender, beInside)) {
-            ChatHandler.chatError(sender, "Not allowed to do this in this world!");
-            return;
-        }
+        if (!world.get().canDoOwnerAction(sender, beInside))
+            throw new ACommandException("Not allowed to do this in this world!");
 
         GameRules rules = world.get().getWorldServer().getGameRules();
-        this.addTabCompletionOptions(sender, rules.getRules());
-        if (!rules.hasRule(rule)) {
-            ChatHandler.chatError(sender, "Rule " + rule + " doesn't exist!");
-            ChatHandler.chatNotification(sender, "Existing rules :");
-            ChatHandler.chatNotification(sender, Arrays.toString(rules.getRules()));
-            return;
-        }
+        addTabCompletionOptions(sender, rules.getRules());
+        if (!rules.hasRule(rule))
+            throw new ACommandException("Rule " + rule + " doesn't exist!");
+
 
         rules.setOrCreateGameRule(rule, value);
         ChatHandler.chatConfirmation(sender,String.format("Set gamerule %s = %s for world %s", rule, value, world.get().getName()));

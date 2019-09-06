@@ -1,10 +1,11 @@
 package com.mineaurion.aurionworld.commands.subcommands.worlds;
 
 import com.mineaurion.aurionworld.AurionWorld;
+import com.mineaurion.aurionworld.core.commands.ACommandException;
+import com.mineaurion.aurionworld.core.commands.AUsageException;
 import com.mineaurion.aurionworld.core.misc.output.ChatHandler;
-import com.mineaurion.aurionworld.core.misc.output.Log;
-import com.mineaurion.aurionworld.core.commands.Command;
-import com.mineaurion.aurionworld.core.commands.SubCommand;
+import com.mineaurion.aurionworld.core.commands.ACommand;
+import com.mineaurion.aurionworld.core.commands.ACommandSub;
 import com.mineaurion.aurionworld.world.AWorld;
 import com.mineaurion.aurionworld.world.AWorldException;
 import net.minecraft.command.ICommandSender;
@@ -13,8 +14,8 @@ import java.util.Optional;
 import java.util.Random;
 import java.util.UUID;
 
-public class CreateCommand extends SubCommand {
-    public CreateCommand(String id, Command parent) {
+public class CreateCommand extends ACommandSub {
+    public CreateCommand(String id, ACommand parent) {
         super(id, parent);
     }
 
@@ -34,17 +35,17 @@ public class CreateCommand extends SubCommand {
     public void process(ICommandSender sender, String[] args) {
         if (args.length == 0 || (args.length == 1 && args[0].equalsIgnoreCase("list"))) {
             listsInfo(sender);
-            return;
+            throw new AUsageException();
         }
 
         if (args.length < 3) {
             ChatHandler.chatError(sender, "Not enough params");
-            return;
+            throw new AUsageException();
         }
 
         if (args.length > 6) {
             ChatHandler.chatError(sender, "Too many params");
-            return;
+            throw new AUsageException();
         }
 
         String name = args[0];
@@ -67,7 +68,7 @@ public class CreateCommand extends SubCommand {
             AurionWorld.getWorldManager().addWorld(world);
             ChatHandler.chatConfirmation(sender, "World " + world.getName() + " has been created succesfully!");
         } catch (AWorldException e) {
-            e.printStackTrace();
+            throw new ACommandException(e.getMessage());
         }
     }
 }

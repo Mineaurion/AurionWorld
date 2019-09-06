@@ -5,22 +5,22 @@ import net.minecraft.command.ServerCommandManager;
 import java.util.ArrayList;
 import java.util.List;
 
-public class CommandManager {
+public class ACommandManager {
     private ServerCommandManager _scm;
-    private List<Command> _commands;
+    private List<ACommand> _commands;
 
-    public CommandManager(ServerCommandManager scm) {
+    public ACommandManager(ServerCommandManager scm) {
         _scm = scm;
         _commands = new ArrayList<>();
     }
 
-    public void registerCommand(Command command) {
+    public void registerCommand(ACommand command) {
         _scm.registerCommand(command);
         _commands.add(command);
     }
 
     public void reload() {
-        for (Command c : _commands) {
+        for (ACommand c : _commands) {
             c.reload();
         }
     }

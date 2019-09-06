@@ -89,7 +89,7 @@ public class AWorldManager {
         for (AWorld world : worldsToLoad.values()) {
             worlds.put(world.getName(), world);
             try {
-                registerWorld(world, false);
+                registerWorld(world);
                 if (world.worldLoadIt)
                     loadWorld(world, false);
             } catch (AWorldException e) {
@@ -126,9 +126,7 @@ public class AWorldManager {
 
     public Optional<AWorld> getWorld(String name) {
         AWorld world = worlds.get(name);
-        if (world == null)
-            return Optional.empty();
-        return Optional.of(world);
+        return Optional.ofNullable(world);
     }
 
     public Optional<AWorld> getWorld(Integer dimId) {
@@ -140,19 +138,20 @@ public class AWorldManager {
     }
 
     public void addWorld(AWorld world) throws AWorldException {
-        registerWorld(world, true);
+        registerWorld(world);
         loadWorld(world, true);
         worlds.put(world.getName(), world);
         world.save();
     }
 
-    protected void registerWorld(AWorld world, boolean newWorld) throws AWorldException {
+    protected void registerWorld(AWorld world) throws AWorldException {
         world.providerId = getWorldProviderId(world.provider);
         world.worldTypeObj = getWorldTypeByName(world.worldType);
 
-        if (newWorld) {
+        if (world.isNew) {
             world.dimensionId = DimensionManager.getNextFreeDimId();
             world.name += "-" + world.dimensionId;
+            world.isNew = false;
         }
 
         DimensionManager.registerDimension(world.dimensionId, world.providerId);
@@ -209,9 +208,6 @@ public class AWorldManager {
             ForgeMessage.DimensionRegisterMessage msg = new ForgeMessage.DimensionRegisterMessage(world.dimensionId, world.providerId);
             channel.attr(FMLOutboundHandler.FML_MESSAGETARGET).set(FMLOutboundHandler.OutboundTarget.ALL);
             channel.writeOutbound(msg);
-
-            // Post WorldEvent.Load
-            MinecraftForge.EVENT_BUS.post(new WorldEvent.Load(worldServer));
         } catch (Exception e) {
             world.error = true;
             throw e;

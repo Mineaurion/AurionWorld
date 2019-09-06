@@ -9,13 +9,13 @@ import net.minecraftforge.common.config.Configuration;
 
 import java.util.*;
 
-public abstract class Command extends CommandBase {
+public abstract class ACommand extends CommandBase {
     public static String prefix = "cmd";
 
     private String _package;
     private String _id;
-    protected Command _parent;
-    private Map<String, SubCommand> _subCommands;
+    protected ACommand _parent;
+    private Map<String, ACommandSub> _subCommands;
 
     private String _name;
     private ArrayList<String> _aliases;
@@ -23,7 +23,7 @@ public abstract class Command extends CommandBase {
     private String _description;
     private int _permission;
 
-    public Command(String id) {
+    public ACommand(String id) {
         super();
 
         _parent = null;
@@ -35,7 +35,7 @@ public abstract class Command extends CommandBase {
         init();
     }
 
-    Command(String id, Command parent) {
+    ACommand(String id, ACommand parent) {
         super();
 
         _parent = parent;
@@ -74,8 +74,8 @@ public abstract class Command extends CommandBase {
     public void processCommand(ICommandSender sender, String[] args) {
         try {
             if (!AurionWorld.isPlayer(sender) && isPlayerOnly())
-                throw new UsageException("This command is only for EntityPlayer!");
-        } catch (UsageException ue) {
+                throw new AUsageException("This command is only for EntityPlayer!");
+        } catch (AUsageException ue) {
             ChatHandler.sendMessage(sender, "This command is only for EntityPlayer!");
             return;
         }
@@ -84,7 +84,7 @@ public abstract class Command extends CommandBase {
         // Try to run Subcommand if exist!
         try {
             if (hasSubCommands() && args.length >= 1) {
-                SubCommand subCommand = getSubCommand(args[0]);
+                ACommandSub subCommand = getSubCommand(args[0]);
                 // Remove the first arguments (subcommand arg)
                 String[] newArgs = Arrays.copyOfRange(args, 1, args.length);
                 if (subCommand != null) {
@@ -92,10 +92,10 @@ public abstract class Command extends CommandBase {
                     return;
                 }
                 else
-                    throw new UsageException();
+                    throw new AUsageException("Unknow command. Try /aw help for list of commands");
             }
-        } catch (UsageException ue) {
-            ChatHandler.chatError(sender, "Unknow command " + getFullId().replace(".", " ") + " " + args[0]);
+        } catch (AUsageException ue) {
+            ChatHandler.chatError(sender, ue.getMessage());
             ChatHandler.sendMessage(sender, getCommandUsage(sender));
             return;
         }
@@ -134,23 +134,23 @@ public abstract class Command extends CommandBase {
         return _package;
     }
 
-    public SubCommand setSubCommand(SubCommand sub) {
+    public ACommandSub setSubCommand(ACommandSub sub) {
         _subCommands.put(sub.getId(), sub);
         return sub;
     }
 
-    public SubCommand getSubCommandById(String id) {
+    public ACommandSub getSubCommandById(String id) {
         if (!hasSubCommands())
             return null;
         return _subCommands.get(id);
     }
 
-    public SubCommand getSubCommand(String cmdNameOrAliases) {
+    public ACommandSub getSubCommand(String cmdNameOrAliases) {
         if (!hasSubCommands())
             return null;
 
-        for(Map.Entry<String, SubCommand> entry : _subCommands.entrySet()) {
-            SubCommand tmp = entry.getValue();
+        for(Map.Entry<String, ACommandSub> entry : _subCommands.entrySet()) {
+            ACommandSub tmp = entry.getValue();
             if (cmdNameOrAliases.equals(tmp.getCommandName()) || tmp.getCommandAliases().contains(cmdNameOrAliases))
                 return tmp;
         }
