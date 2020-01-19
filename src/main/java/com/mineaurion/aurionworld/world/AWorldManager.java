@@ -1,5 +1,6 @@
 package com.mineaurion.aurionworld.world;
 
+import com.google.common.base.Throwables;
 import com.mineaurion.aurionworld.AurionWorld;
 import com.mineaurion.aurionworld.core.misc.output.Log;
 import com.mineaurion.aurionworld.core.models.WorldModel;
@@ -141,7 +142,6 @@ public class AWorldManager {
         if (world.isNew) {
             world.dimensionId = DimensionManager.getNextFreeDimId();
             world.name += "-" + world.dimensionId;
-            world.isNew = false;
         }
 
         DimensionManager.registerDimension(world.dimensionId, world.providerId);
@@ -156,7 +156,7 @@ public class AWorldManager {
             WorldServer overworld = DimensionManager.getWorld(0);
             if (overworld == null)
                 throw new AWorldException("Cannot hotload dim: Overworld is not Loaded!");
-            ISaveHandler savehandler = new AWorldSaveHandler(overworld.getSaveHandler(), world);
+            Log.info("HERE 1 - not throw");
             WorldSettings worldSettings = new WorldSettings(
                     world.seed,
                     WorldSettings.GameType.SURVIVAL,
@@ -164,25 +164,30 @@ public class AWorldManager {
                     false,
                     world.worldTypeObj)
                     .func_82750_a(world.generator);
+            ISaveHandler savehandler = new AWorldSaveHandler(overworld.getSaveHandler(), world);
             // Create WorldServer with settings
             WorldServer worldServer = new AWorldServer(mcServer, savehandler,
                     overworld.getWorldInfo().getWorldName(), world.dimensionId, worldSettings,
                     overworld, mcServer.theProfiler, world);
+
             // Overwrite dimensionId because WorldProviderEnd for example just hardcodes the dimId
             worldServer.provider.dimensionId = world.dimensionId;
-
-            if (newWorld)
+            if (newWorld) {
+                Log.info("- newWorld");
                 world.setSpawn(
                         worldServer.getSpawnPoint().posX,
                         worldServer.getSpawnPoint().posY,
                         worldServer.getSpawnPoint().posZ
                 );
-            else
+            } else
                 world.setSpawn();
 
             worldServer.addWorldAccess(new WorldManager(mcServer, worldServer));
             if (!mcServer.isSinglePlayer())
                 worldServer.getWorldInfo().setGameType(mcServer.getGameType());
+
+            ((AWorldServer) worldServer).save();
+
             // SetDifficulty
             mcServer.func_147139_a(mcServer.func_147135_j());
             world.updateWorldSettings();

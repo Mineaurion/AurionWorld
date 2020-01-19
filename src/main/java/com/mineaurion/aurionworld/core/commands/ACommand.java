@@ -6,6 +6,7 @@ import com.mineaurion.aurionworld.AurionWorld;
 import com.mineaurion.aurionworld.world.AWorldException;
 import net.minecraft.command.CommandBase;
 import net.minecraft.command.ICommandSender;
+import net.minecraft.server.MinecraftServer;
 import net.minecraftforge.common.config.Configuration;
 
 import java.util.*;
@@ -22,7 +23,7 @@ public abstract class ACommand extends CommandBase {
     private ArrayList<String> _aliases;
     private String _usage;
     private String _description;
-    private int _permission;
+    private int _permission = 0;
 
     public ACommand(String id) {
         super();
@@ -72,6 +73,11 @@ public abstract class ACommand extends CommandBase {
     }
 
     @Override
+    public boolean canCommandSenderUseCommand(ICommandSender sender) {
+        return (_permission == 0) || AurionWorld.isOp(sender);
+    }
+
+    @Override
     public void processCommand(ICommandSender sender, String[] args) {
         try {
             if (!AurionWorld.isPlayer(sender) && isPlayerOnly())
@@ -83,34 +89,32 @@ public abstract class ACommand extends CommandBase {
 
         Log.debug(getFullId() + " executed!");
         // Try to run Subcommand if exist!
+        ACommandSub subCommand = null;
         try {
             if (hasSubCommands() && args.length >= 1) {
-                ACommandSub subCommand = getSubCommand(args[0]);
+                subCommand = getSubCommand(args[0]);
                 // Remove the first arguments (subcommand arg)
                 String[] newArgs = Arrays.copyOfRange(args, 1, args.length);
                 if (subCommand != null) {
-                    subCommand.execute(sender, newArgs);
+                    subCommand.preProcess(sender, newArgs);
                     return;
                 }
                 else
                     throw new AUsageException(AUsageException.UNKNOW);
             }
+            process(sender, args);
         } catch (AUsageException ue) {
-            ChatHandler.chatError(sender, ue.getMessage());
-            ChatHandler.sendMessage(sender, getCommandUsage(sender));
-            return;
+            String message = (ue.getMessage() == null) ? AUsageException.UNKNOW : ue.getMessage();
+            ChatHandler.chatError(sender, message);
+            if (subCommand != null) {
+                ChatHandler.sendMessage(sender, subCommand.getCommandUsage(sender));
+            }
         } catch (ACommandException | AWorldException ex ) {
             ChatHandler.chatError(sender, ex.getMessage());
-            return;
         }
-        process(sender, args);
     }
 
-    public void execute(ICommandSender sender, String[] args) {
-        processCommand(sender, args);
-    }
-
-    protected abstract void process(ICommandSender sender, String[] args);
+    protected abstract void process(ICommandSender sender, String[] args) throws ACommandException, AUsageException, AWorldException;
 
     @Override
     public List addTabCompletionOptions(ICommandSender sender, String[] args) {
@@ -177,7 +181,7 @@ public abstract class ACommand extends CommandBase {
             );
             _usage = conf.get(getFullId(), "usage", "Usage " + getFullId()).getString();
             _description = conf.get(getFullId(), "description", "Description " + getFullId()).getString();
-            _permission = conf.get(getFullId(), "permission", 1).getInt();
+            _permission = conf.get(getFullId(), "permission", 0).getInt();
 
             if (conf.hasChanged())
                 conf.save();

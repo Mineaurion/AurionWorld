@@ -13,6 +13,7 @@ buildscript {
         maven {
             url "https://plugins.gradle.org/m2/"
         }
+        maven { url 'https://jitpack.io' }
     }
     dependencies {
         classpath 'net.minecraftforge.gradle:ForgeGradle:1.2-SNAPSHOT'
@@ -67,7 +68,6 @@ dependencies {
     compile 'org.slf4j:slf4j-api:1.7.25'
     extraLibs 'org.slf4j:slf4j-simple:1.7.25'
     /* Need to be extraLibs */
-
     compile 'com.fasterxml.jackson.core:jackson-databind:2.9.9'
     compile 'com.fasterxml.jackson.core:jackson-core:2.9.9'
     compile 'com.fasterxml.jackson.core:jackson-annotations:2.9.0'
@@ -101,9 +101,17 @@ jar {
 }
 
 task installJar(type: Copy) {
-    from "./build/libs/"+ archivesBaseName +"-" + version + ".jar"
-    into 'C:/Users/Ashk/Desktop/Mineaurion/Server/Forge1.7.10/mods'
+    from "./build/libs/AurionWorld-1.0.jar"
+    into "C:/Users/Ashk/Desktop/Mineaurion/Server/Thermos1.7.10/mods"
 }
 
+task installJarForge(type: Copy) {
+    from "./build/libs/AurionWorld-1.0.jar"
+    into "C:/Users/Ashk/Desktop/Mineaurion/Server/Forge1.7.10/mods"
+}
+
+
+installJarForge.dependsOn build;
+installJarForge.mustRunAfter(build);
 installJar.dependsOn build;
 installJar.mustRunAfter(build);

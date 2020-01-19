@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 
+import com.mineaurion.aurionworld.core.misc.output.Log;
 import net.minecraft.nbt.CompressedStreamTools;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.world.MinecraftException;
@@ -27,10 +28,16 @@ public class AWorldSaveHandler implements ISaveHandler {
             throw new RuntimeException();
         this.parent = (SaveHandler) parent;
         this.world = world;
+        Log.info("WORLD ID  : " + Integer.toString(world.getDimensionId()));
     }
 
     public File getDimensionDirectory() {
-        return new File(getWorldDirectory(), world.getName());
+        Log.info("PARENT DIRECTORY NAME : " + parent.getWorldDirectoryName());
+        Log.info("PARENT DIRECTROY  NAME : " + getWorldDirectoryName());
+        Log.info("CURRENT : " + getWorldDirectoryName());
+        File f = new File(getWorldDirectory(), "DIM" + world.getDimensionId());
+        Log.info("FILE NAME " +  f.getAbsolutePath());
+        return (f);
     }
 
     @Override
@@ -41,12 +48,13 @@ public class AWorldSaveHandler implements ISaveHandler {
     @Override
     public WorldInfo loadWorldInfo() {
         File file1 = new File(getDimensionDirectory(), "level.dat");
+
         if (file1.exists()) {
+            Log.info("FILE 1 PATH : " + file1.getAbsolutePath());
             try {
                 NBTTagCompound nbttagcompound = CompressedStreamTools.readCompressed(new FileInputStream(file1));
                 NBTTagCompound nbttagcompound1 = nbttagcompound.getCompoundTag("Data");
-                WorldInfo worldInfo = new WorldInfo(nbttagcompound1);
-                return worldInfo;
+                return new WorldInfo(nbttagcompound1);
             } catch (StartupQuery.AbortedException e) {
                 throw e;
             } catch (Exception exception1) {
@@ -88,7 +96,9 @@ public class AWorldSaveHandler implements ISaveHandler {
             File file2 = new File(getDimensionDirectory(), "level.dat_old");
             File file3 = new File(getDimensionDirectory(), "level.dat");
             CompressedStreamTools.writeCompressed(dataTag, new FileOutputStream(file1));
-
+            Log.info("FILE PATH 1 : " + file1.getAbsolutePath());
+            Log.info("FILE PATH 2 : " + file2.getAbsolutePath());
+            Log.info("FILE PATH 3 : " + file3.getAbsolutePath());
             if (file2.exists()) {
                 file2.delete();
             }
@@ -127,6 +137,7 @@ public class AWorldSaveHandler implements ISaveHandler {
 
     @Override
     public File getWorldDirectory() {
+        Log.info("FILE TEST : " + new File(parent.getWorldDirectory(), "DIM" + world.getDimensionId()).getAbsolutePath());
         return parent.getWorldDirectory();
     }
 

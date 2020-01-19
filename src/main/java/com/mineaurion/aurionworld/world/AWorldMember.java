@@ -1,7 +1,9 @@
 package com.mineaurion.aurionworld.world;
 
+import com.mineaurion.aurionworld.core.misc.output.Log;
 import com.mineaurion.aurionworld.core.models.WorldMemberModel;
 
+import java.math.BigInteger;
 import java.util.UUID;
 
 public class AWorldMember {
@@ -10,30 +12,35 @@ public class AWorldMember {
     public static int TRUST_MEMBER = 1;
     public static int TRUST_OWNER = 2;
 
-    private int id;
-    private int worldId;
-    private UUID uuid;
-    private int level;
-
+    protected int id;
+    protected int worldId;
+    protected UUID uuid;
+    protected int level;
+    protected boolean isNew;
     public AWorld world;
 
-    public AWorldMember(WorldMemberModel wmm) {
-        model = wmm;
-
-        id = model.getInteger("id");
-        worldId = model.getInteger("world_id");
-        uuid = UUID.fromString(model.getString("uuid"));
-        level = model.getInteger("level");
-    }
-
+    // When add new member
     public AWorldMember(AWorld world, UUID uuid, int level) {
         model = new WorldMemberModel();
+        isNew = true;
+
         this.world = world;
         this.worldId = this.world.getId();
         this.uuid = uuid;
         this.level = level;
+        save();
+    }
 
-        model.save();
+    // When load from DB
+    public AWorldMember(AWorld world, WorldMemberModel wmm) {
+        model = wmm;
+        isNew = false;
+
+        this.world = world;
+        id = model.getInteger("id");
+        worldId = model.getInteger("world_id");
+        uuid = UUID.fromString(model.getString("uuid"));
+        level = model.getInteger("level");
     }
 
     public void save() {
@@ -41,6 +48,11 @@ public class AWorldMember {
         model.setString("uuid", uuid.toString());
         model.setInteger("level", level);
         model.save();
+        if (isNew) {
+            id = model.getInteger("id");
+            isNew = false;
+        }
+        Log.info(uuid.toString() + " has been added to " + world.getName() + " world!");
     }
 
     public void delete() {

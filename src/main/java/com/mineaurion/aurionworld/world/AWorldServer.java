@@ -1,5 +1,6 @@
 package com.mineaurion.aurionworld.world;
 
+import com.mineaurion.aurionworld.core.misc.output.Log;
 import com.mineaurion.aurionworld.core.misc.teleporter.TeleportHelper;
 import com.mineaurion.aurionworld.core.misc.teleporter.TeleportHelper.SimpleTeleporter;
 import net.minecraft.profiler.Profiler;
@@ -35,6 +36,14 @@ public class AWorldServer extends WorldServer
     {
         this.perWorldStorage.saveAllData();
         this.saveHandler.saveWorldInfo(this.worldInfo);
+    }
+
+    public void save() {
+        try {
+            saveLevel();
+        } catch (MinecraftException e) {
+            e.printStackTrace();
+        }
     }
 
 }

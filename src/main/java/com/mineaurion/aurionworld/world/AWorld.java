@@ -39,7 +39,7 @@ public class AWorld {
     protected boolean structures;
     protected boolean worldLoadIt;
     protected WorldPoint spawnPoint = null;
-    protected HashMap<UUID, AWorldMember> members;
+    protected HashMap<UUID, AWorldMember> members = new HashMap<>();
 
     // Helper
     protected boolean worldLoaded = false;
@@ -48,6 +48,7 @@ public class AWorld {
 
     protected boolean error;
 
+    // When add new world
     public AWorld(String name, UUID ownerUuid, String provider, String worldType, long seed, String generator, boolean structures) {
         this.model = new WorldModel();
         isNew = true;
@@ -62,6 +63,7 @@ public class AWorld {
         worldLoadIt = true;
     }
 
+    // When load from DB
     public AWorld(WorldModel model) {
         this.model = model;
         isNew = false;
@@ -76,15 +78,14 @@ public class AWorld {
         generator = (String) model.get("generator");
         structures = (Integer) model.get("structures") == 1;
         worldLoadIt = (Integer) model.get("load_it") == 1;
+        loadWorldMembersFromDb();
     }
 
-    protected HashMap<String, AWorldMember> loadWorldMembersFromDb() {
+    private void loadWorldMembersFromDb() {
         List<WorldMemberModel> worldMembersModel = WorldMemberModel.findAll();
-        HashMap<String, AWorldMember> results = new HashMap<>();
         for (WorldMemberModel wmm : worldMembersModel) {
-            results.put(wmm.getString("name"), new AWorldMember(wmm));
+            members.put(UUID.fromString(wmm.getString("uuid")), new AWorldMember(this, wmm));
         }
-        return results;
     }
 
     public void setSpawn(int x, int y, int z) {
@@ -124,12 +125,18 @@ public class AWorld {
         model.set("spawn_x", spawnPoint.getX());
         model.set("spawn_y", spawnPoint.getY());
         model.set("spawn_z", spawnPoint.getZ());
-        // Database save
         model.save();
+        // Database save
+        if (isNew) {
+            id = model.getInteger("id");
+            isNew = false;
+        }
         Log.info("Save world " + name + " (" + dimensionId + ") in database");
     }
 
     public void delete() {
+        members.forEach((uuid, member) -> member.delete());
+        members.clear();
         model.delete();
         Log.info("World " + name + " has been deleted!");
     }
@@ -196,13 +203,7 @@ public class AWorld {
     }
 
     public void addMember(UUID uuid, int level) {
-        WorldMemberModel wmm = new WorldMemberModel();
-        wmm.set("world_id", id);
-        wmm.set("uuid", uuid);
-        wmm.set("level", level);
-        wmm.save();
-
-        AWorldMember member = new AWorldMember(wmm);
+        AWorldMember member = new AWorldMember(this, uuid, level);
         members.put(uuid, member);
     }
 
@@ -212,11 +213,6 @@ public class AWorld {
             wmm.delete();
             members.remove(uuid);
         }
-    }
-
-    private void clearMembers() {
-        members.forEach((uuid, member) -> member.delete());
-        members.clear();
     }
 
 

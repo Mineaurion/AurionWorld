@@ -25,9 +25,6 @@ public class DeleteCommand extends ACommandSub {
         // World doesn't exist
         if (!world.isPresent())
             throw new ACommandException(ACommandException.WORLD_NOT_EXIST);
-        // Not allowed
-        if (!AurionWorld.isOp(sender))
-            throw new ACommandException(ACommandException.NOT_ALLOWED);
 
         String name = world.get().getName();
         AurionWorld.getWorldManager().deleteWorld(world.get());

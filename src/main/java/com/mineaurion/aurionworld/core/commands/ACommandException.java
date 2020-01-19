@@ -9,6 +9,7 @@ public class ACommandException extends RuntimeException {
     public static String PLAYER_NOT_MEMBER = "This user isn't attached to %s world";
     public static String PLAYER_IS_CREATE = "%s is the creator, you can't manage him";
     public static String PLAYER_CANT_MANAGE_HIMSELF = "You can't manage yourself";
+    public static String NOT_PERMISSION = "You do not have permission to use this command";
     public static String NOT_ALLOWED = "You are not allowed to do that!";
 
     public static String WORLD_NOT_EXIST = "This world doesn't exist";

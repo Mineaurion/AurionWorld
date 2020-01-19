@@ -28,6 +28,7 @@ public class AurionWorldCommand extends ACommand {
         setSubCommand(new DeleteCommand("delete", this));
         setSubCommand(new LoadCommand("load", this));
         setSubCommand(new OptionCommand("option", this));
+        //TODO: CMD gamerules
         setSubCommand(new SetSpawnCommand("setspawn", this));
         setSubCommand(new TeleportCommand("teleport", this));
         setSubCommand(new UnloadCommand("unload", this));
@@ -35,6 +36,6 @@ public class AurionWorldCommand extends ACommand {
 
     @Override
     public void process(ICommandSender commandSender, String[] args) {
-        getSubCommandById("help").execute(commandSender, args);
+        getSubCommandById("help").preProcess(commandSender, args);
     }
 }

@@ -56,7 +56,7 @@ public class ACommandTrust extends ACommandSub {
         // Check if AWorld not exist
         if (!givenWorld.isPresent())
             throw new ACommandException(
-                    (args.length == 2)
+                    (args.length == 1)
                             ? ACommandException.NOT_ALLOWED
                             : ACommandException.WORLD_NOT_EXIST
             );
